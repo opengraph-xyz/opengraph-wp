@@ -1,0 +1,65 @@
+=== Dynamic Open Graph Images - OpenGraph.xyz ===
+Contributors: bobsingor
+Tags: open graph, images, og image, dynamic og image, meta tags
+Requires at least: 5
+Tested up to: 6.4.2
+Requires PHP: 5.6
+Version: 1.0.0
+Stable tag: 1.0.0
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
+
+Enhance your WordPress site with dynamic Open Graph images.
+
+== Description ==
+
+Enable dynamic and automatic updates of Open Graph images across your website. This plugin allows you to choose from an array of templates, both free and premium, ensuring your social media previews are always eye-catching and brand-aligned.
+
+### What is OpenGraph.xyz?
+
+[OpenGraph.xyz](https://www.opengraph.xyz/) is a SaaS platform designed to enhance your website's presence on social media. By generating and previewing Open Graph meta tags, OpenGraph.xyz ensures your content stands out when shared. With the introduction of dynamic Open Graph images, your website's visibility and click-through rates on social media platforms can significantly increase. This plugin brings the power of OpenGraph.xyz directly into your WordPress site, allowing for seamless integration and management.
+
+### What does this plugin do?
+
+Dynamic Open Graph Images - OpenGraph.xyz integrates your WordPress site with OpenGraph.xyz services, enabling:
+
+- Automatic generation and updating of Open Graph meta tags.
+- Selection from a variety of Open Graph image templates.
+- Access to both free and premium templates for diverse customization.
+- Enhanced social media previews to attract more clicks and engagement.
+
+### Who is this plugin for?
+
+This plugin is ideal for website owners, marketers, and content creators who want to boost their social media presence and engagement. Whether you run a blog, an e-commerce site, or a business website, dynamic Open Graph images can help your content capture attention on platforms like Facebook, Twitter, and LinkedIn.
+
+== Installation ==
+
+1. Upload `opengraph-xyz.zip` to the `/wp-content/plugins/` directory.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+
+== Frequently Asked Questions ==
+
+= Do I need an OpenGraph.xyz account to use this plugin? =
+
+No, an OpenGraph.xyz account is not required to access free templates. However, to create your own branded custom Open Graph templates and access premium features, an account with OpenGraph.xyz is necessary.
+
+= Is this plugin suitable for beginners? =
+
+Absolutely! Dynamic Open Graph Images - OpenGraph.xyz is designed to be user-friendly, allowing anyone to enhance their social media previews with ease.
+
+= How do I select an Open Graph template for my website? =
+
+Once the plugin is installed and activated, navigate to the 'OpenGraph' menu in your WordPress dashboard. Here, you'll find a variety of templates to choose from. Simply select a template that aligns with your brand's identity, and it will be automatically applied to your website's Open Graph meta tags.
+
+= How do I link template variables to WordPress variables? =
+
+Once you've selected a template, the next step is to map the template's dynamic variables to corresponding WordPress variables. For example, you can link a 'title' variable in your template to the 'Post Title' in WordPress. This ensures that the dynamic content from your site, like post titles or featured images, is automatically incorporated into your Open Graph images. You'll find these settings in the template editing interface where you can easily assign WordPress variables to your template's dynamic elements.
+
+= Can I use different templates for different types of content? =
+
+Yes, the plugin allows you to assign different templates to different post types or individual posts. This ensures that each piece of content on your website can have a unique and relevant Open Graph image.
+
+== Changelog ==
+
+= 1.0.0 =
+* Initial release.

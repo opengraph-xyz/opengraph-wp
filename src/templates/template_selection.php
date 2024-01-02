@@ -28,12 +28,13 @@ if ( ! current_user_can( 'manage_options' ) ) {
     <?php if ( isset( $templates['edges'] ) && is_array( $templates['edges'] ) ) : ?>
       <div class="template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 20px;">
           <?php foreach ( $templates['edges'] as $edge ) :
-              $template      = $edge['node'];
-              $name          = $template['name'];
-              $id            = $template['id'];
-              $premium       = $template['isPremium'];
-              $version       = $template['activeVersion'];
-              $versionNumber = $version['versionNumber'];
+              $template       = $edge['node'];
+              $name           = $template['name'];
+              $id             = $template['id'];
+              $premium        = $template['isPremium'];
+              $organizationId = $template['organizationId'];
+              $version        = $template['activeVersion'];
+              $versionNumber  = $version['versionNumber'];
               
               
               // Generate image URL
@@ -64,20 +65,22 @@ if ( ! current_user_can( 'manage_options' ) ) {
                       <div class="template-details" style="width: 100%; background: rgba(255,255,255,.65); color: #000; text-align: center; font-size: 16px;">
                         <div style="padding: 1rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border-top: 1px solid #dcdcde;">
                           <?php echo esc_html( $name ); ?>
-                          <?php if ( isset( $premium ) ) : ?>
-                            <span style="font-size: .75rem; line-height: 1rem; padding: .25rem .5rem; border-radius: 9999px; background-color: #ffffcc; color: #854d0e; display: inline-flex; -moz-column-gap: .375rem; column-gap: 0.375rem; align-items: center;">
-                              <svg style="width: 1rem; height: 1rem; fill: #eab308;" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z"></path>
-                              </svg>
-                              Premium
-                            </span>
-                          <?php else : ?>
-                            <span style="font-size: .75rem; line-height: 1rem; padding: .25rem .5rem; border-radius: 9999px; background-color: #f3f4f6; color: #4b5563; display: inline-flex; -moz-column-gap: .375rem; column-gap: 0.375rem; align-items: center;">
-                              <svg style="width: 0.375rem; height: 0.375rem; fill: #9ca3af;" viewBox="0 0 6 6" aria-hidden="true">
-                                <circle cx="3" cy="3" r="3"></circle>
-                              </svg>
-                              Free
-                            </span>
+                          <?php if ( !isset( $organizationId ) ) : ?>
+                            <?php if ( isset( $premium ) ) : ?>
+                              <span style="font-size: .75rem; line-height: 1rem; padding: .25rem .5rem; border-radius: 9999px; background-color: #ffffcc; color: #854d0e; display: inline-flex; -moz-column-gap: .375rem; column-gap: 0.375rem; align-items: center;">
+                                <svg style="width: 1rem; height: 1rem; fill: #eab308;" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z"></path>
+                                </svg>
+                                Premium
+                              </span>
+                            <?php else : ?>
+                              <span style="font-size: .75rem; line-height: 1rem; padding: .25rem .5rem; border-radius: 9999px; background-color: #f3f4f6; color: #4b5563; display: inline-flex; -moz-column-gap: .375rem; column-gap: 0.375rem; align-items: center;">
+                                <svg style="width: 0.375rem; height: 0.375rem; fill: #9ca3af;" viewBox="0 0 6 6" aria-hidden="true">
+                                  <circle cx="3" cy="3" r="3"></circle>
+                                </svg>
+                                Free
+                              </span>
+                            <?php endif; ?>
                           <?php endif; ?>
                         </div>
                       </div>
