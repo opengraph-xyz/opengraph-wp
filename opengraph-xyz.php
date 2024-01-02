@@ -1,6 +1,7 @@
 <?php
 /*
 Plugin Name: OpenGraph.xyz
+Plugin URI: https://github.com/opengraph-xyz/opengraph-wp
 Description: Dynamic Open Graph images for your website
 Version: 1.0.0
 Author: OpenGraph.xyz
