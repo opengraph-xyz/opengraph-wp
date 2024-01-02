@@ -59,6 +59,17 @@ Once you've selected a template, the next step is to map the template's dynamic 
 
 Yes, the plugin allows you to assign different templates to different post types or individual posts. This ensures that each piece of content on your website can have a unique and relevant Open Graph image.
 
+= How to contact OpenGraph.xyz? =
+
+If you have any questions or need assistance, you can reach out to the OpenGraph.xyz team directly. Visit our website at [OpenGraph.xyz](https://www.opengraph.xyz) and use the chat feature to get in touch with us. Our team is always ready to help you with any queries or support you may need regarding our service or the WordPress plugin.
+
+== Screenshots ==
+
+1. Choose an OG template
+2. Assign dynamic fields to a template
+3. Add OpenGraph.xyz API key
+4. Open Graph image example
+
 == Changelog ==
 
 = 1.0.0 =
