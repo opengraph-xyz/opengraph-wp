@@ -8,17 +8,17 @@
 defined( 'ABSPATH' ) || exit;
 
 function get_template_variables( $post_id ) {
-    /*
-    $cached = get_transient( 'opengraph-xyz_variables_' . $post_id );
-
-    if ( false !== $cached ) {
-        return $cached;
-    }
-    */
     $meta = get_post_meta( $post_id, 'opengraph-xyz', true );
 
     if ( ! is_array( $meta ) || empty( $meta['template_id'] ) || empty( $meta['template_version'] ) ) {
         return new WP_Error( 'no_opengraph-xyz', __( 'No OpenGraph template or version found for this post.', 'opengraph-xyz' ) );
+    }
+
+    $cache_key = 'opengraph-xyz_variables_' . $meta['template_id'] . '_' . $meta['template_version'];
+    $cached = get_transient( $cache_key );
+
+    if ( false !== $cached ) {
+        return $cached;
     }
 
     $apiKey = get_option('opengraph_xyz_api_key');
@@ -37,7 +37,7 @@ function get_template_variables( $post_id ) {
 
     $variables = isset( $template['data'] ) && isset( $template['data']['variables'] ) ? $template['data']['variables'] : array();
 
-    //set_transient( 'opengraph-xyz_variables_' . $post_id, $variables, 10 * MINUTE_IN_SECONDS );
+    set_transient( $cache_key, $variables, 10 * MINUTE_IN_SECONDS );
 
     return $variables;
 }
