@@ -160,6 +160,32 @@ class Dynamic_Tags {
 			);
 		}
 
+    if (class_exists('WooCommerce')) {
+			// Active price (could be sale price if on sale)
+			$this->tags['product_price'] = array(
+					'description' => __('The current active product price.', 'opengraph-xyz'),
+					'callback'    => array($this, 'get_product_property')
+			);
+
+			// Sale price
+			$this->tags['product_sale_price'] = array(
+					'description' => __('The current product sale price.', 'opengraph-xyz'),
+					'callback'    => array($this, 'get_product_property')
+			);
+
+				// Regular price
+				$this->tags['product_regular_price'] = array(
+						'description' => __('The current product regular price.', 'opengraph-xyz'),
+						'callback'    => array($this, 'get_product_property')
+				);
+
+        // SKU
+        $this->tags['product_sku'] = array(
+					'description' => __('The current product SKU.', 'opengraph-xyz'),
+					'callback'    => array($this, 'get_product_property')
+				);
+		}	
+
 		// Post author.
 		$this->tags['post_author_id'] = array(
 			'description' => __( 'The current post author ID.', 'opengraph-xyz' ),
@@ -384,6 +410,36 @@ class Dynamic_Tags {
 	private function get_site_name() {
 		$url = parse_url(get_site_url());
 		return isset($url['host']) ? $url['host'] : '';
+	}
+
+	/**
+	 * Retrieves a product property
+	 *
+	 * @param array $args
+	 * @param string $property
+	 * @return string
+	 */
+	protected function get_product_property($args = array(), $property = '') {
+		$default = isset($args['default']) ? esc_html($args['default']) : '';
+		$post = get_post();
+
+		if (empty($post) || 'product' !== $post->post_type) {
+				return $default;
+		}
+
+		$meta_key = substr($property, 7);
+		$value = get_post_meta($post->ID, $meta_key, true);
+
+		switch ( $property ) {
+			case 'product_regular_price':
+			case 'product_sale_price':
+			case 'product_price':
+				return $value ? html_entity_decode(wc_price($value)) : $default;
+			case 'product_sku':
+				return $value ? esc_html($value) : $default;
+			default:
+				return $default;
+		}
 	}
 
 	/**
