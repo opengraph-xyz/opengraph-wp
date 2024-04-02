@@ -6,6 +6,8 @@ Description: Dynamic Open Graph images for your website
 Version: 1.0.0
 Author: OpenGraph.xyz
 Author URI: https://opengraph.xyz
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 */
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
