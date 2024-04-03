@@ -1,15 +1,15 @@
 <?php
 // Exit if accessed directly.
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
-$available_variables = get_template_variables( $post->ID );
+$available_variables = opengraphxyz_get_template_variables($post->ID);
 
-$opengraphxyz            = get_post_meta( $post->ID, 'opengraph-xyz', true );
-$current_modifications = empty( $opengraphxyz['modifications'] ) ? array() : $opengraphxyz['modifications'];
-$custom_fields         = empty( $opengraphxyz['custom_fields'] ) ? array() : $opengraphxyz['custom_fields'];
-$dynamic_tags        = wp_list_pluck( opengraph()->get_tags(), 'description' );
+$opengraphxyz = get_post_meta($post->ID, 'opengraph-xyz', true);
+$current_modifications = empty($opengraphxyz['modifications']) ? array() : $opengraphxyz['modifications'];
+$custom_fields = empty($opengraphxyz['custom_fields']) ? array() : $opengraphxyz['custom_fields'];
+$dynamic_tags = wp_list_pluck(opengraphxyz_init()->get_tags(), 'description');
 
-wp_nonce_field( 'opengraph-xyz', 'opengraph-xyz-nonce' );
+wp_nonce_field('opengraph-xyz', 'opengraph-xyz-nonce');
 
 $dynamic_tags_json = json_encode($dynamic_tags);
 
@@ -17,42 +17,42 @@ $dynamic_tags_json = json_encode($dynamic_tags);
 
 <table class="form-table">
   <tbody>
-    <?php if (empty($available_variables)) : ?>
-      <tr><td colspan="2">No modifications available for this template.</td></tr>
+    <?php if (empty($available_variables)): ?>
+                      <tr><td colspan="2">No modifications available for this template.</td></tr>
     <?php endif; ?>
-    <?php foreach ( $available_variables as $variable ) : ?>
+    <?php foreach ($available_variables as $variable): ?>
 
-      <?php foreach ( $variable['modifications'] as $modification ) : ?>
+      <?php foreach ($variable['modifications'] as $modification): ?>
         <tr>
           <th scope="row">
-            <label for="opengraph-modification-<?php echo esc_attr( $variable['id'] ); ?>__<?php echo esc_attr( $modification['property'] ); ?>">
-              <?php echo esc_html( $variable['id'] ); ?> (<?php echo esc_html( $modification['property'] ); ?>)
+            <label for="opengraph-modification-<?php echo esc_attr($variable['id']); ?>__<?php echo esc_attr($modification['property']); ?>">
+              <?php echo esc_html($variable['id']); ?> (<?php echo esc_html($modification['property']); ?>)
             </label>
           </th>
           <td>
-            <select name="opengraph[modifications][<?php echo esc_attr( $variable['id'] ); ?>][<?php echo esc_attr( $modification['property'] ); ?>]" id="opengraph-modification-<?php echo esc_attr( $variable['id'] ); ?>__<?php echo esc_attr( $modification['property'] ); ?>" class="regular-text">
+            <select name="opengraph[modifications][<?php echo esc_attr($variable['id']); ?>][<?php echo esc_attr($modification['property']); ?>]" id="opengraph-modification-<?php echo esc_attr($variable['id']); ?>__<?php echo esc_attr($modification['property']); ?>" class="regular-text">
               <?php
-                $current_value = isset( $current_modifications[ $variable['id'] ][ $modification['property'] ] ) ? $current_modifications[ $variable['id'] ][ $modification['property']] : '';
-                $custom_field  = isset( $custom_fields[ $variable['id'] ][ $modification['property'] ] ) ? $custom_fields[ $variable['id'] ][ $modification['property'] ] : '';
+              $current_value = isset($current_modifications[$variable['id']][$modification['property']]) ? $current_modifications[$variable['id']][$modification['property']] : '';
+              $custom_field = isset($custom_fields[$variable['id']][$modification['property']]) ? $custom_fields[$variable['id']][$modification['property']] : '';
               ?>
-              <option value="_" <?php selected( $current_value, '' ); ?>><?php esc_html_e( 'Default', 'opengraph-xyz' ); ?></option>
-              <?php foreach ( $dynamic_tags as $dynamic_tag => $description ) : ?>
-                <option value="{<?php echo esc_attr( $dynamic_tag ); ?>}" <?php selected( $current_value, '{' . $dynamic_tag . '}' ); ?>>
-                  <?php echo esc_html( $description ); ?>
-                </option>
+              <option value="_" <?php selected($current_value, ''); ?>><?php esc_html_e('Default', 'opengraph-xyz'); ?></option>
+              <?php foreach ($dynamic_tags as $dynamic_tag => $description): ?>
+                                <option value="{<?php echo esc_attr($dynamic_tag); ?>}" <?php selected($current_value, '{' . $dynamic_tag . '}'); ?>>
+                                  <?php echo esc_html($description); ?>
+                                </option>
               <?php endforeach; ?>
             </select>
             <input
               type="text"
-              name="opengraph[custom_fields][<?php echo esc_attr( $variable['id'] ); ?>][<?php echo esc_attr( $modification['property'] ); ?>]"
-              id="opengraph-custom-fields-<?php echo esc_attr( $variable['id'] ); ?>__<?php echo esc_attr( $modification['property'] ); ?>"
+              name="opengraph[custom_fields][<?php echo esc_attr($variable['id']); ?>][<?php echo esc_attr($modification['property']); ?>]"
+              id="opengraph-custom-fields-<?php echo esc_attr($variable['id']); ?>__<?php echo esc_attr($modification['property']); ?>"
               class="regular-text"
               style="display: none; margin-left: 10px"
-              placeholder="<?php esc_attr_e( 'Meta Key', 'opengraph-xyz' ); ?>"
-              value="<?php echo isset( $custom_fields[ $variable['id'] ][ $modification['property'] ] ) ? esc_attr( $custom_fields[ $variable['id'] ][ $modification['property'] ] ) : ''; ?>" />
+              placeholder="<?php esc_attr_e('Meta Key', 'opengraph-xyz'); ?>"
+              value="<?php echo isset($custom_fields[$variable['id']][$modification['property']]) ? esc_attr($custom_fields[$variable['id']][$modification['property']]) : ''; ?>" />
           </td>
-        </tr>
-      <?php endforeach; ?>
+              </tr>
+          <?php endforeach; ?>
 
     <?php endforeach; ?>
   </tbody>
@@ -81,7 +81,7 @@ $dynamic_tags_json = json_encode($dynamic_tags);
     $('select[id^="opengraph-modification-"]').trigger('change');
 
     $('#template-version-dropdown').change(function() {
-      var postId = '<?php echo esc_js( $post->ID ); ?>';
+      var postId = '<?php echo esc_js($post->ID); ?>';
       var version = $(this).val();
 
       // Disable the update button
@@ -155,7 +155,7 @@ $dynamic_tags_json = json_encode($dynamic_tags);
                     id: 'opengraph-custom-fields-' + variable.id + '__' + modification.property,
                     class: 'regular-text',
                     style: 'display: none; margin-left: 14px',
-                    placeholder: '<?php esc_attr_e( 'Meta Key', 'opengraph-xyz' ); ?>'
+                    placeholder: '<?php esc_attr_e('Meta Key', 'opengraph-xyz'); ?>'
                   });
 
                 td.append(customFieldInput);

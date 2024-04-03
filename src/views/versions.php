@@ -2,7 +2,7 @@
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
-$versions = get_template_versions($post->ID);
+$versions = opengraphxyz_get_template_versions($post->ID);
 $meta = get_post_meta($post->ID, 'opengraph-xyz', true);
 $current_version = isset($meta['template_version']) ? $meta['template_version'] : null;
 ?>

@@ -10,7 +10,7 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 */
 
-if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/vendor/autoload.php';
 }
 
@@ -20,9 +20,10 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
  * @since  1.0.0
  * @return OpenGraphXYZ\Plugin
  */
-function opengraph() {
-	return OpenGraphXYZ\Plugin::instance();
+function opengraphxyz_init()
+{
+    return OpenGraphXYZ\Plugin::instance();
 }
 
 // Start the plugin.
-opengraph();
+opengraphxyz_init();
