@@ -60,7 +60,7 @@ $dynamic_tags_json = json_encode($dynamic_tags);
 
 
 <script type="text/javascript">
-  var dynamicTags = <?php echo $dynamic_tags_json; ?>;
+  var dynamicTags = <?php echo wp_json_encode($dynamic_tags_json); ?>;
 
   jQuery(document).ready(function($) {
     function toggleCustomFieldInput(select) {
