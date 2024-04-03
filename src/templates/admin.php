@@ -1,4 +1,9 @@
 <?php
+
+// Exit if accessed directly.
+defined('ABSPATH') || exit;
+
+
 // Check user capabilities
 if (!current_user_can('manage_options')) {
     return;

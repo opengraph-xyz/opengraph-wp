@@ -10,6 +10,9 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 */
 
+// Exit if accessed directly.
+defined('ABSPATH') || exit;
+
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/vendor/autoload.php';
 }

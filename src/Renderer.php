@@ -2,6 +2,9 @@
 
 namespace OpenGraphXYZ;
 
+// Exit if accessed directly.
+defined('ABSPATH') || exit;
+
 class Renderer
 {
 
