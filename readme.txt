@@ -70,6 +70,17 @@ If you have any questions or need assistance, you can reach out to the OpenGraph
 3. Add OpenGraph.xyz API key
 4. Open Graph image example
 
+== External Services ==
+
+= ogcdn.net = 
+This is our open graph image generation service to create your og image. The URLs of your generated og:image tags point to this service with data about your page to dynamically create the images.
+[Terms of Service](https://www.opengraph.xyz/page/terms-of-service) | [Privacy Policy](https://www.opengraph.xyz/page/privacy-policy)
+
+= api.opengraph.xyz = 
+This is our service for the og image templates. This service will be accessed when you view and choose image templates for your pages.
+[Terms of Service](https://www.opengraph.xyz/page/terms-of-service) | [Privacy Policy](https://www.opengraph.xyz/page/privacy-policy)
+
+
 == Changelog ==
 
 = 1.0.0 =
