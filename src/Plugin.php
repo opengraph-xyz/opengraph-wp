@@ -47,18 +47,37 @@ class Plugin
     // Load files.
     $this->load_files();
 
-    // Init class properties.
-    $this->dynamic_tags = new Dynamic_Tags();
-    $this->dynamic_tags->init();
-    $this->renderer = new Renderer();
-    $this->renderer->init();
+    // Initialize components on plugins_loaded
+    add_action('plugins_loaded', array($this, 'init_components'), 20);
 
+    // Register custom post type
     add_action('init', array($this, 'register_custom_post_type'));
 
     if (is_admin()) {
-      $admin = new Admin();
-      $admin->init();
+      add_action('plugins_loaded', array($this, 'init_admin'), 20);
     }
+  }
+
+  /**
+   * Initialize plugin components.
+   */
+  public function init_components()
+  {
+    // Init class properties.
+    $this->dynamic_tags = new Dynamic_Tags();
+    $this->dynamic_tags->init();
+
+    $this->renderer = new Renderer();
+    $this->renderer->init();
+  }
+
+  /**
+   * Initialize admin functionality.
+   */
+  public function init_admin()
+  {
+    $admin = new Admin();
+    $admin->init();
   }
 
   /**
@@ -97,7 +116,6 @@ class Plugin
 
     // Functions.
     require_once $includes . 'functions.php';
-
   }
 
   public function register_custom_post_type()

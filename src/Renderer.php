@@ -7,25 +7,59 @@ defined('ABSPATH') || exit;
 
 class Renderer
 {
+  private $og_image_url = null;
+  private $og_image_width = 1200;
+  private $og_image_height = 630;
+  private $og_image_type = 'image/png';
+  private $meta_tag_class = 'opengraph-xyz-meta-tag';
 
   /**
    * Initialize hooks and filters.
    */
   public function init()
   {
-    add_action('wp_head', array($this, 'render_og_tag'));
+    if (defined('WPSEO_VERSION')) {
+      // If Yoast SEO is active
+      add_filter('wpseo_opengraph_image', array($this, 'maybe_replace_yoast_og_image'), 10, 1);
+      add_filter('wpseo_opengraph_image_width', array($this, 'set_og_image_width'), 10, 1);
+      add_filter('wpseo_opengraph_image_height', array($this, 'set_og_image_height'), 10, 1);
+      add_filter('wpseo_opengraph_image_type', array($this, 'set_og_image_type'), 10, 1);
+    } else {
+      // If Yoast SEO is not active
+      add_action('wp_head', array($this, 'render_og_tags'), 10);
+    }
   }
 
   /**
-   * Render OpenGraph meta tags.
+   * Render OpenGraph meta tags when Yoast SEO is not active.
    */
-  public function render_og_tag()
+  public function render_og_tags()
   {
+    $og_image_url = $this->get_og_image_url();
+    if ($og_image_url) {
+      echo '<meta property="og:image" content="' . esc_url($og_image_url) . '" class="' . esc_attr($this->meta_tag_class) . '" />' . "\n";
+      echo '<meta property="og:image:width" content="' . esc_attr($this->og_image_width) . '" class="' . esc_attr($this->meta_tag_class) . '" />' . "\n";
+      echo '<meta property="og:image:height" content="' . esc_attr($this->og_image_height) . '" class="' . esc_attr($this->meta_tag_class) . '" />' . "\n";
+      echo '<meta property="og:image:type" content="' . esc_attr($this->og_image_type) . '" class="' . esc_attr($this->meta_tag_class) . '" />' . "\n";
+    }
+  }
+
+  /**
+   * Get the OpenGraph image URL.
+   * 
+   * @return string|null
+   */
+  private function get_og_image_url()
+  {
+    if ($this->og_image_url !== null) {
+      return $this->og_image_url;
+    }
+
     $post = get_post();
 
     // Maybe abort early.
     if (empty($post) || is_admin() || !is_singular()) {
-      return;
+      return null;
     }
 
     $templates = opengraphxyz_init()->get_templates();
@@ -35,13 +69,12 @@ class Renderer
       $post_type = $post->post_type;
 
       if (in_array($post_type, $template_meta['post_types'], true)) {
-        $og_image_url = $this->build_og_image_url($template_meta);
-
-        echo '<meta property="og:image" content="' . esc_url($og_image_url) . '" />' . "\n";
-        break;
+        $this->og_image_url = $this->build_og_image_url($template_meta);
+        return $this->og_image_url;
       }
-      //check here if the template has the post_type in the array then we will show metatag there
     }
+
+    return null;
   }
 
   /**
@@ -111,5 +144,38 @@ class Renderer
     }
 
     return $new;
+  }
+
+  /**
+   * Maybe replace Yoast's OG image.
+   */
+  public function maybe_replace_yoast_og_image($image)
+  {
+    $og_image_url = $this->get_og_image_url();
+    return $og_image_url ? $og_image_url : $image;
+  }
+
+  /**
+   * Set OG image width.
+   */
+  public function set_og_image_width($width)
+  {
+    return $this->get_og_image_url() ? $this->og_image_width : $width;
+  }
+
+  /**
+   * Set OG image height.
+   */
+  public function set_og_image_height($height)
+  {
+    return $this->get_og_image_url() ? $this->og_image_height : $height;
+  }
+
+  /**
+   * Set OG image type.
+   */
+  public function set_og_image_type($type)
+  {
+    return $this->get_og_image_url() ? $this->og_image_type : $type;
   }
 }
