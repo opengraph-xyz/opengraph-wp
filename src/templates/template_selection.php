@@ -101,16 +101,16 @@ if ( ! current_user_can( 'manage_options' ) ) {
 <?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
 
 <script>
+
+// Prevent multiple template creations when choosing a template
 function submitTemplateForm(formId) {
-    console.log('Attempting to submit form:', formId);
+
     const form = document.getElementById(formId);
     if (form && !form.dataset.submitted) {
-        console.log('Form found and not yet submitted, proceeding with submission');
+      
         form.dataset.submitted = 'true';
         showLoadingOverlay();
         form.submit();
-    } else {
-        console.log('Form submission prevented:', form ? 'already submitted' : 'form not found');
-    }
+    } 
 }
 </script>
