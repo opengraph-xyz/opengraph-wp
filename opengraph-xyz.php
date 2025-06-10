@@ -8,6 +8,7 @@ Author: OpenGraph.xyz
 Author URI: https://opengraph.xyz
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Tested up to: 6.8.1
 */
 
 // Exit if accessed directly.
