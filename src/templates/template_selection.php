@@ -98,6 +98,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
     <?php endif; ?>
 </div>
 
+<?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
+
 <script>
 function submitTemplateForm(formId) {
     console.log('Attempting to submit form:', formId);
@@ -105,6 +107,7 @@ function submitTemplateForm(formId) {
     if (form && !form.dataset.submitted) {
         console.log('Form found and not yet submitted, proceeding with submission');
         form.dataset.submitted = 'true';
+        showLoadingOverlay();
         form.submit();
     } else {
         console.log('Form submission prevented:', form ? 'already submitted' : 'form not found');
