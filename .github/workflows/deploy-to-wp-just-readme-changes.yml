@@ -24,3 +24,4 @@ jobs:
           SVN_USERNAME: ${{ inputs.svn_username }}
           SVN_PASSWORD: ${{ inputs.svn_password }}
           SLUG: opengraph-xyz
+          IGNORE_OTHER_FILES: true
