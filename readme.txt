@@ -2,7 +2,7 @@
 Contributors: bobsingor
 Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5
-Tested up to: 6.4.2
+Tested up to: 6.8
 Requires PHP: 5.6
 Version: 1.0.1
 Stable tag: 1.0.1
@@ -84,6 +84,7 @@ This is our service for the og image templates. This service will be accessed wh
 == Changelog ==
 
 = 1.0.1 =
+* Tested up to 6.8.1
 * Improved compatibility with Yoast SEO plugin.
 * Fixed issue where both OpenGraph XYZ and Yoast SEO tags were being displayed simultaneously.
 * Optimized plugin initialization process to ensure proper loading order with other plugins.
