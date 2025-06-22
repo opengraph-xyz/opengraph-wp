@@ -1,0 +1,25 @@
+name: Plugin asset/readme update (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      svn_username:
+        description: 'WordPress.org SVN username'
+        required: true
+      svn_password:
+        description: 'WordPress.org SVN password'
+        required: true
+
+jobs:
+  trunk:
+    name: Push to trunk
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: WordPress.org plugin asset/readme update
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ inputs.svn_username }}
+          SVN_PASSWORD: ${{ inputs.svn_password }}
