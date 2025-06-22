@@ -25,3 +25,4 @@ jobs:
           SVN_PASSWORD: ${{ inputs.svn_password }}
           SLUG: opengraph-xyz
           IGNORE_OTHER_FILES: true
+          SKIP_ASSETS : true
