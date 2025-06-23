@@ -1,5 +1,6 @@
 # This GitHub Actions workflow updates only the readme and plugin asset files on WordPress.org when changes are pushed to trunk or main.
 # It is intended for manual or documentation-only updates, not for full plugin releases.
+# Change the extension of the yml file from backup to .yml to run it
 name: Plugin asset/readme update (Manual)
 
 on:
