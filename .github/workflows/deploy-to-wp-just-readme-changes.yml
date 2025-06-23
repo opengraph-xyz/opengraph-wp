@@ -1,0 +1,23 @@
+# This GitHub Actions workflow updates only the readme and plugin asset files on WordPress.org when changes are pushed to trunk or main.
+# It is intended for manual or documentation-only updates, not for full plugin releases.
+name: Plugin asset/readme update (Manual)
+
+on:
+  push:
+    branches:
+    - trunk
+    - main
+jobs:
+  trunk:
+    name: Push to trunk
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: WordPress.org plugin asset/readme update
+      uses: 10up/action-wordpress-plugin-asset-update@stable
+      env:
+        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+        SLUG: opengraph-xyz
+        IGNORE_OTHER_FILES: true
+        SKIP_ASSETS : true
