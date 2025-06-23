@@ -1,5 +1,5 @@
 === Dynamic Open Graph Images - OpenGraph.xyz ===
-Contributors: OpenGraph.xyz
+Contributors: opengraphxyz
 Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 6.8
