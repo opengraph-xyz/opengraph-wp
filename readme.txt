@@ -1,7 +1,7 @@
 === Dynamic Open Graph Images - OpenGraph.xyz ===
-Contributors: bobsingor
+Contributors: OpenGraph.xyz
 Tags: open graph, images, og image, dynamic og image, meta tags
-Requires at least: 5
+Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 5.6
 Version: 1.1.0
