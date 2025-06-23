@@ -105,6 +105,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Prevent multiple template creations when choosing a template
 function submitTemplateForm(formId) {
 
+  console.log('submitTemplateForm 2', formId);
     const form = document.getElementById(formId);
     if (form && !form.dataset.submitted) {
       
