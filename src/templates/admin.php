@@ -15,7 +15,7 @@ if (!current_user_can('manage_options')) {
 
     <!-- Banner for API Key information -->
     <div class="api-key-info-banner" style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-        <strong>Need an API Key?</strong> Obtain your API key from your <a href="https://www.opengraph.xyz/get-started" target="_blank">OpenGraph.xyz account</a>. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>. Remember, you can still use our free templates without an API key.
+        <strong>Need an API Key?</strong> Obtain your API key from your <a href="https://www.opengraph.xyz/get-started" target="_blank">OpenGraph.xyz account</a>. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>.
     </div>
     <div style="max-width: 740px;">
       <form method="post" action="options.php">
