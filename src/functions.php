@@ -16,6 +16,19 @@ defined('ABSPATH') || exit;
 function opengraphxyz_get_base_url() {
     return defined('OPENGRAPHXYZ_BASE_URL') ? OPENGRAPHXYZ_BASE_URL : 'https://opengraph.enter.nl';
 }
+
+/**
+ * Get the OpenGraph.xyz settings URL with wp parameter
+ * 
+ * @return string The settings URL for OpenGraph.xyz
+ */
+function opengraphxyz_get_settings_url() {
+    $base_url = opengraphxyz_get_base_url();
+    $current_domain = $_SERVER['HTTP_HOST'] ?? '';
+    
+    return $base_url . '/register?redirect=/org/[organizationId]/settings/api-keys&wp=' . urlencode($current_domain);
+}
+
 function opengraphxyz_get_template_variables($post_id)
 {
     $meta = get_post_meta($post_id, 'opengraph-xyz', true);

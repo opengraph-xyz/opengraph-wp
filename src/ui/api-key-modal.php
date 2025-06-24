@@ -2,8 +2,8 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-// Get the base URL using the helper function
-$opengraph_base_url = opengraphxyz_get_base_url();
+// Get the settings URL using the helper function
+$settings_url = opengraphxyz_get_settings_url();
 ?>
 
 <div id="api-key-modal" class="api-key-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
@@ -26,7 +26,7 @@ $opengraph_base_url = opengraphxyz_get_base_url();
             <button type="button" class="button button-secondary" onclick="closeApiKeyModal()" style="padding: 0.5rem 1rem; border: 1px solid #ddd; background: #f9f9f9; border-radius: 4px; cursor: pointer;">
                 Cancel
             </button>
-            <a id="register-link" href="#" target="_blank" class="button button-primary" style="padding: 0.5rem 1rem; background: #0073aa; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+            <a id="register-link" href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary" style="padding: 0.5rem 1rem; background: #0073aa; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
                 Get API Key
             </a>
         </div>
@@ -34,20 +34,8 @@ $opengraph_base_url = opengraphxyz_get_base_url();
 </div>
 
 <script>
-// Pass the PHP variable to JavaScript
-const opengraphBaseUrl = '<?php echo esc_js($opengraph_base_url); ?>';
-
 function showApiKeyModal() {
     const modal = document.getElementById('api-key-modal');
-    const registerLink = document.getElementById('register-link');
-    
-    // Get the current WordPress site domain including port if it exists
-    const currentDomain = window.location.host;
-    
-    // Set the registration URL using the configurable base URL
-    const registerUrl = `${opengraphBaseUrl}/register?redirect=/org/[organizationId]/settings/api-keys&wp=${encodeURIComponent(currentDomain)}`;
-    registerLink.href = registerUrl;
-    
     modal.style.display = 'flex';
 }
 

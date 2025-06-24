@@ -9,14 +9,28 @@ if (!current_user_can('manage_options')) {
     return;
 }
 
+// Get the settings URL using the helper function
+$settings_url = opengraphxyz_get_settings_url();
+
 ?>
 <div class="wrap">
     <h1>Settings</h1>
 
     <!-- Banner for API Key information -->
     <div class="api-key-info-banner" style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-        <strong>Need an API Key?</strong> Obtain your API key from your <a href="https://www.opengraph.xyz/get-started" target="_blank">OpenGraph.xyz account</a>. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>.
+        <strong>Need an API Key?</strong> Obtain your API key from your OpenGraph.xyz account by clicking the button below. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>.
+    
+        <div style="margin-top:20px;">
+        <a href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary" style="background: #0073aa; border-color: #0073aa; color: white; padding: 8px 16px; font-size: 14px; line-height: 1.4; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block;">
+            <span class="dashicons dashicons-external" style="margin-right: 5px;"></span>
+            Go to OpenGraph.xyz Settings
+        </a>
     </div>
+    </div>
+    
+    <!-- Settings Button -->
+    
+    
     <div style="max-width: 740px;">
       <form method="post" action="options.php">
           <?php
