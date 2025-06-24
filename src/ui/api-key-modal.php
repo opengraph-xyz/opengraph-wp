@@ -35,8 +35,11 @@ function showApiKeyModal() {
     const modal = document.getElementById('api-key-modal');
     const registerLink = document.getElementById('register-link');
     
-    // Set the registration URL with the literal [organizationId] string
-    const registerUrl = `https://opengraph.enter.nl/register?redirect=/org/[organizationId]/settings/api-keys`;
+    // Get the current WordPress site domain including port if it exists
+    const currentDomain = window.location.host;
+    
+    // Set the registration URL with the literal [organizationId] string and wp parameter
+    const registerUrl = `https://opengraph.enter.nl/register?redirect=/org/[organizationId]/settings/api-keys&wp=${encodeURIComponent(currentDomain)}`;
     registerLink.href = registerUrl;
     
     modal.style.display = 'flex';
