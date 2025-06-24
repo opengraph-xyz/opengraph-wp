@@ -45,6 +45,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
                   }
               }
               $imageUrl = rtrim( $imageUrl, '/' ) . '/og.png';
+
+              //AQICAHjMMXoM/eR6U9Xr2QjmpO0pQyix60EHAiW2rj+YjDJLXAGUBClAQhwrz/6s08nxfc/qAAAAdDByBgkqhkiG9w0BBwagZTBjAgEAMF4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMcq9dM4kh/jFWyepTAgEQgDGpFxNxm01Gs7GxIg+2vRc0rNH0OiFkgGm2KP6Qtu3UQYmpzTMCVGAnvXbJ654V2KUv
               ?>
               <?php if ( $premium ) : ?>
                   <!-- Premium template -->
@@ -58,7 +60,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
                   <input type="hidden" name="template_name" value="<?php echo esc_attr( $name ); ?>">
                   <input type="hidden" name="template_version" value="<?php echo esc_attr( $versionNumber ); ?>">
               <?php endif; ?>
-                  <div onclick="submitTemplateForm('template-form-<?php echo esc_attr( $id ); ?>')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
+                  <div onclick="handleTemplateClick('<?php echo esc_attr( $id ); ?>')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
                       <div class="template-card" style="position: relative; padding-top: 52.5%; background-color: #fff">
                           <img src="<?php echo esc_url( $imageUrl ); ?>" alt="<?php echo esc_attr( $name ); ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                       </div>
@@ -99,16 +101,29 @@ if ( ! current_user_can( 'manage_options' ) ) {
 </div>
 
 <?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
+<?php include_once plugin_dir_path(__FILE__) . '../ui/api-key-modal.php'; ?>
 
 <script>
+// Check if user has API key
+const hasApiKey = <?php echo $hasApiKey ? 'true' : 'false'; ?>;
+
+// Handle template click - check for API key first
+function handleTemplateClick(templateId) {
+    if (!hasApiKey) {
+        // Show API key modal if no API key
+        showApiKeyModal();
+        return;
+    }
+    
+    // If API key exists, submit the form
+    submitTemplateForm('template-form-' + templateId);
+}
 
 // Prevent multiple template creations when choosing a template
 function submitTemplateForm(formId) {
-
-  console.log('submitTemplateForm 2', formId);
+    console.log('submitTemplateForm 2', formId);
     const form = document.getElementById(formId);
     if (form && !form.dataset.submitted) {
-      
         form.dataset.submitted = 'true';
         showLoadingOverlay();
         form.submit();

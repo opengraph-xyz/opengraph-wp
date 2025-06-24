@@ -306,6 +306,10 @@ class Admin
   {
     $apiKey = get_option('opengraph_xyz_api_key'); // Assuming the API key is stored with this name
     $templates = $this->fetch_templates($apiKey);
+    
+    // Pass API key status to the template
+    $hasApiKey = !empty($apiKey);
+    
     // Fetch templates from opengraph.xyz API and display them
     include_once 'templates/template_selection.php';
   }
