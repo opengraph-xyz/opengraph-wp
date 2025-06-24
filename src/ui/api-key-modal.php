@@ -1,6 +1,9 @@
 <?php
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
+
+// Get the base URL using the helper function
+$opengraph_base_url = opengraphxyz_get_base_url();
 ?>
 
 <div id="api-key-modal" class="api-key-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
@@ -31,6 +34,9 @@ defined( 'ABSPATH' ) || exit;
 </div>
 
 <script>
+// Pass the PHP variable to JavaScript
+const opengraphBaseUrl = '<?php echo esc_js($opengraph_base_url); ?>';
+
 function showApiKeyModal() {
     const modal = document.getElementById('api-key-modal');
     const registerLink = document.getElementById('register-link');
@@ -38,8 +44,8 @@ function showApiKeyModal() {
     // Get the current WordPress site domain including port if it exists
     const currentDomain = window.location.host;
     
-    // Set the registration URL with the literal [organizationId] string and wp parameter
-    const registerUrl = `https://opengraph.enter.nl/register?redirect=/org/[organizationId]/settings/api-keys&wp=${encodeURIComponent(currentDomain)}`;
+    // Set the registration URL using the configurable base URL
+    const registerUrl = `${opengraphBaseUrl}/register?redirect=/org/[organizationId]/settings/api-keys&wp=${encodeURIComponent(currentDomain)}`;
     registerLink.href = registerUrl;
     
     modal.style.display = 'flex';

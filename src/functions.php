@@ -7,6 +7,15 @@
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
+/**
+ * Get the configurable OpenGraph base URL
+ * Can be overridden in wp-config.php with: define('OPENGRAPHXYZ_BASE_URL', 'http://opengraph.enter.me:4600');
+ * 
+ * @return string The base URL for OpenGraph services
+ */
+function opengraphxyz_get_base_url() {
+    return defined('OPENGRAPHXYZ_BASE_URL') ? OPENGRAPHXYZ_BASE_URL : 'https://opengraph.enter.nl';
+}
 function opengraphxyz_get_template_variables($post_id)
 {
     $meta = get_post_meta($post_id, 'opengraph-xyz', true);
