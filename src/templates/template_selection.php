@@ -50,7 +50,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
                   <!-- Premium template -->
                   <a href="https://www.opengraph.xyz/get-started" target="_blank" class="template-card" style="text-decoration: none">
               <?php else : ?>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="template-form">
+              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="template-form" id="template-form-<?php echo esc_attr( $id ); ?>">
                   <?php wp_nonce_field( 'opengraph_xyz_select_template_action', 'opengraph_xyz_select_template_nonce' ); ?>
 
                   <input type="hidden" name="action" value="create_opengraph_template">
@@ -58,7 +58,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
                   <input type="hidden" name="template_name" value="<?php echo esc_attr( $name ); ?>">
                   <input type="hidden" name="template_version" value="<?php echo esc_attr( $versionNumber ); ?>">
               <?php endif; ?>
-                  <div onclick="this.parentNode.submit()" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
+                  <div onclick="submitTemplateForm('template-form-<?php echo esc_attr( $id ); ?>')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
                       <div class="template-card" style="position: relative; padding-top: 52.5%; background-color: #fff">
                           <img src="<?php echo esc_url( $imageUrl ); ?>" alt="<?php echo esc_attr( $name ); ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                       </div>
@@ -97,3 +97,21 @@ if ( ! current_user_can( 'manage_options' ) ) {
         <p>No templates available.</p>
     <?php endif; ?>
 </div>
+
+<?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
+
+<script>
+
+// Prevent multiple template creations when choosing a template
+function submitTemplateForm(formId) {
+
+  console.log('submitTemplateForm 2', formId);
+    const form = document.getElementById(formId);
+    if (form && !form.dataset.submitted) {
+      
+        form.dataset.submitted = 'true';
+        showLoadingOverlay();
+        form.submit();
+    } 
+}
+</script>
