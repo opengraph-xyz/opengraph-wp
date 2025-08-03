@@ -15,9 +15,25 @@ $settings_url = opengraphxyz_get_settings_url();
 // Check if user was redirected from OpenGraph.xyz
 $redirected_from_opengraphxyz = isset($_GET['redirected_from_opengraphxyz']) && $_GET['redirected_from_opengraphxyz'] === 'true';
 
+// Check if settings were updated
+$settings_updated = isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true';
+
 ?>
 <div class="wrap">
     <h1>Settings</h1>
+
+    <?php if ($settings_updated): ?>
+        <!-- Success Toast Notification -->
+        <div id="opengraph-xyz-toast" class="opengraph-xyz-toast opengraph-xyz-toast-success">
+            <span class="opengraph-xyz-toast-message">
+                <span class="dashicons dashicons-yes-alt"></span>
+                API key saved successfully!
+            </span>
+            <button type="button" class="opengraph-xyz-toast-close" onclick="closeToast()">
+                <span class="dashicons dashicons-no-alt"></span>
+            </button>
+        </div>
+    <?php endif; ?>
 
     <?php if ($redirected_from_opengraphxyz): ?>
         <!-- Message for users redirected from OpenGraph.xyz -->
@@ -57,3 +73,104 @@ $redirected_from_opengraphxyz = isset($_GET['redirected_from_opengraphxyz']) && 
       </form>
     </div>
 </div>
+
+<style>
+.opengraph-xyz-toast {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    z-index: 999999;
+    max-width: 400px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideInRight 0.3s ease-out;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.opengraph-xyz-toast-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.opengraph-xyz-toast-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.opengraph-xyz-toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 12px;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.opengraph-xyz-toast-close:hover {
+    opacity: 1;
+}
+
+.opengraph-xyz-toast-close .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.opengraph-xyz-toast.hiding {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+</style>
+
+<script>
+function closeToast() {
+    const toast = document.getElementById('opengraph-xyz-toast');
+    if (toast) {
+        toast.classList.add('hiding');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+// Auto-hide toast after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const toast = document.getElementById('opengraph-xyz-toast');
+    if (toast) {
+        setTimeout(() => {
+            closeToast();
+        }, 5000);
+    }
+});
+</script>
