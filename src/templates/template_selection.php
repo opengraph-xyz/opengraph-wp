@@ -8,6 +8,15 @@ if ( ! current_user_can( 'manage_options' ) ) {
     return;
 }
 
+// Get the create template base URL
+$create_template_base_url = opengraphxyz_get_create_template_baseurl_raw();
+
+$apiKey = get_option('opengraph_xyz_api_key'); // Assuming the API key is stored with this name
+$templates = $this->fetch_templates($apiKey);
+
+// Pass API key status to the template
+$hasApiKey = !empty($apiKey);
+
 // Template selection view
 ?>
 
@@ -107,6 +116,14 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Check if user has API key
 const hasApiKey = <?php echo $hasApiKey ? 'true' : 'false'; ?>;
 
+// Get the create template base URL from PHP
+const createTemplateBaseUrl = '<?php echo esc_js($create_template_base_url); ?>';
+
+// Debug: Log template data
+<?php if ( isset( $templates['edges'] ) && is_array( $templates['edges'] ) ) : ?>
+console.log('Template data:', <?php echo json_encode($templates['edges']); ?>);
+<?php endif; ?>
+
 // Handle template click - check for API key first
 function handleTemplateClick(templateId) {
     if (!hasApiKey) {
@@ -116,17 +133,14 @@ function handleTemplateClick(templateId) {
     }
     
     // If API key exists, submit the form
-    submitTemplateForm('template-form-' + templateId);
+    submitTemplateForm(templateId);
 }
 
 // Prevent multiple template creations when choosing a template
-function submitTemplateForm(formId) {
-    console.log('submitTemplateForm 2', formId);
-    const form = document.getElementById(formId);
-    if (form && !form.dataset.submitted) {
-        form.dataset.submitted = 'true';
-        showLoadingOverlay();
-        form.submit();
-    } 
+function submitTemplateForm(templateId) {
+
+  const createTemplateUrl = createTemplateBaseUrl + templateId;
+  console.log(createTemplateUrl);
+  window.open(createTemplateUrl, '_blank');
 }
 </script>

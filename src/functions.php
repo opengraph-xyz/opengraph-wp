@@ -17,6 +17,20 @@ function opengraphxyz_get_base_url() {
     return defined('OPENGRAPHXYZ_BASE_URL') ? OPENGRAPHXYZ_BASE_URL : 'https://opengraph.enter.nl';
 }
 
+function opengraphxyz_get_base_api_url() {
+    return defined('OPENGRAPHXYZ_BASE_API_URL') ? OPENGRAPHXYZ_BASE_API_URL : 'https://api.opengraph.xyz';
+}
+
+/**
+ * Get the create template base URL without URL encoding for JavaScript concatenation
+ * 
+ * @return string The base URL for creating templates
+ */
+function opengraphxyz_get_create_template_baseurl_raw() {
+    $base_url = opengraphxyz_get_base_url();
+    return $base_url . "/register?redirect=/org/[organizationId]/create-template/";
+}
+
 /**
  * Get the OpenGraph.xyz settings URL with wp parameter
  * 
@@ -24,9 +38,9 @@ function opengraphxyz_get_base_url() {
  */
 function opengraphxyz_get_settings_url() {
     $base_url = opengraphxyz_get_base_url();
-    $current_domain = $_SERVER['HTTP_HOST'] ?? '';
+    $current_domain = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
     
-    return $base_url . '/register?redirect=/org/[organizationId]/settings/api-keys&wp=' . urlencode($current_domain);
+    return $base_url . "/register?redirect=/org/[organizationId]/settings/api-keys?wp=" . urlencode($current_domain);
 }
 
 function opengraphxyz_get_template_variables($post_id)
@@ -50,7 +64,7 @@ function opengraphxyz_get_template_variables($post_id)
         $args['headers'] = array('api-key' => $apiKey);
     }
 
-    $response = wp_remote_get('https://api.opengraph.xyz/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $meta['template_version'], $args);
+    $response = wp_remote_get(opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $meta['template_version'], $args);
 
     if (is_wp_error($response)) {
         return $response;
@@ -79,7 +93,7 @@ function opengraphxyz_get_template_versions($post_id)
         $args['headers'] = array('api-key' => $apiKey);
     }
 
-    $response = wp_remote_get('https://api.opengraph.xyz/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions', $args);
+    $response = wp_remote_get(opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions', $args);
 
     if (is_wp_error($response)) {
         return $response;

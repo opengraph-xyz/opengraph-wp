@@ -31,6 +31,10 @@ class Admin
 
     // Add hooks for AJAX
     add_action('wp_ajax_fetch_template_variables', array($this, 'fetch_template_variables'));
+    add_action('wp_ajax_get_create_template_url', array($this, 'get_create_template_url'));
+    
+    // Enqueue scripts for admin pages
+    add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
   }
 
   /**
@@ -303,13 +307,7 @@ class Admin
   }
 
   public function display_template_selection_page()
-  {
-    $apiKey = get_option('opengraph_xyz_api_key'); // Assuming the API key is stored with this name
-    $templates = $this->fetch_templates($apiKey);
-    
-    // Pass API key status to the template
-    $hasApiKey = !empty($apiKey);
-    
+  {    
     // Fetch templates from opengraph.xyz API and display them
     include_once 'templates/template_selection.php';
   }
@@ -334,7 +332,7 @@ class Admin
     }
 
     // Fetch variables as per template_id and version
-    $apiUrl = 'https://api.opengraph.xyz/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $template_version;
+    $apiUrl = opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $template_version;
     $response = wp_remote_get($apiUrl, $args);
 
     if (is_wp_error($response)) {
@@ -355,9 +353,23 @@ class Admin
     wp_send_json_success(array('variables' => $variables));
   }
 
+  // Function to handle AJAX request for getting create template URL
+  public function get_create_template_url()
+  {
+    $templateId = isset($_POST['template_id']) ? sanitize_text_field($_POST['template_id']) : '';
+    
+    if (empty($templateId)) {
+      wp_send_json_error(array('message' => 'Template ID is required.'));
+      return;
+    }
+    
+    $url = opengraphxyz_get_create_template_url($templateId);
+    wp_send_json_success(array('url' => $url));
+  }
+
   private function fetch_templates($apiKey = '')
   {
-    $apiUrl = 'https://api.opengraph.xyz/v2/api/image-editor-templates';
+    $apiUrl = opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates';
     $args = array();
 
     // Include headers only if api-key is provided
@@ -404,5 +416,11 @@ class Admin
               .page-title-action:not([class*=" "]) { display: none !important; }
           </style>';
     }
+  }
+
+  // Enqueue scripts for admin pages
+  public function enqueue_admin_scripts()
+  {
+    // Add your custom scripts here
   }
 }
