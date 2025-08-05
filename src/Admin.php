@@ -54,7 +54,7 @@ class Admin
     // Add the submenu item with a different name but same slug as the main menu item
     add_submenu_page(
       'edit.php?post_type=opengraph_template', // Parent slug
-      'OpenGraph XYZ Templates',               // Page title
+      'OG Manager',               // Page title
       'OG Manager',                   // Menu title
       'manage_options',                        // Capability
       'edit.php?post_type=opengraph_template', // Menu slug
