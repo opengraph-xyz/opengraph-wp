@@ -92,7 +92,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                         <input type="hidden" name="template_name" value="<?php echo esc_attr( $name ); ?>">
                         <input type="hidden" name="template_version" value="<?php echo esc_attr( $versionNumber ); ?>">
                         
-                        <div onclick="handleTemplateClick('<?php echo esc_attr( $id ); ?>')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
+                        <div onclick="handleTemplateClick('<?php echo esc_attr( $id ); ?>', 'user')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
                             <div class="template-card" style="position: relative; padding-top: 52.5%; background-color: #fff">
                                 <img src="<?php echo esc_url( $imageUrl ); ?>" alt="<?php echo esc_attr( $name ); ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                             </div>
@@ -147,7 +147,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                             <input type="hidden" name="template_name" value="<?php echo esc_attr( $name ); ?>">
                             <input type="hidden" name="template_version" value="<?php echo esc_attr( $versionNumber ); ?>">
                     <?php endif; ?>
-                        <div onclick="handleTemplateClick('<?php echo esc_attr( $id ); ?>')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
+                        <div onclick="handleTemplateClick('<?php echo esc_attr( $id ); ?>', 'stock')" style="cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 1px -1px rgba(0,0,0,.1); border: 1px solid #dcdcde;">
                             <div class="template-card" style="position: relative; padding-top: 52.5%; background-color: #fff">
                                 <img src="<?php echo esc_url( $imageUrl ); ?>" alt="<?php echo esc_attr( $name ); ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                             </div>
@@ -229,15 +229,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Handle template click - check for API key first
-function handleTemplateClick(templateId) {
+function handleTemplateClick(templateId, templateType) {
     if (!hasApiKey) {
         // Show API key modal if no API key
         showApiKeyModal();
         return;
     }
     
-    // If API key exists, submit the form
-    submitTemplateForm(templateId);
+    if (templateType === 'user') {
+        // This is a user template - submit the form
+        var formId = "template-form-" + templateId;
+        const form = document.getElementById(formId);
+        if (form && !form.dataset.submitted) {
+            form.dataset.submitted = 'true';
+            showLoadingOverlay();
+            form.submit();
+        }
+    } else {
+        // This is a stock template - use the existing behavior
+        submitTemplateForm(templateId);
+    }
 }
 
 // Prevent multiple template creations when choosing a template
