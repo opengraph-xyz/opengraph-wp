@@ -55,7 +55,7 @@ class Admin
     add_submenu_page(
       'edit.php?post_type=opengraph_template', // Parent slug
       'OpenGraph XYZ Templates',               // Page title
-      'Installed Templates',                   // Menu title
+      'OG Manager',                   // Menu title
       'manage_options',                        // Capability
       'edit.php?post_type=opengraph_template', // Menu slug
       null                                     // Function (not needed as it's the same as the main menu)
@@ -297,8 +297,8 @@ class Admin
 
     add_submenu_page(
       'edit.php?post_type=opengraph_template',
-      'Add New Template',
-      'Add New Template',
+      'Select OG Template',
+      'Select OG Template',
       'manage_options', // Standard capability
       'opengraph_template_selection',
       array($this, 'display_template_selection_page'),
