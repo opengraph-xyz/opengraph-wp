@@ -392,10 +392,12 @@ class Admin
   {
     global $pagenow, $typenow;
 
-    if ($pagenow == 'edit.php' && $typenow == 'opengraph_template') {
+    if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
+      $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
+      
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
-                  var customButton = \'<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Add New Template</a>\';
+                  var customButton = \'' . $customButton . '\';
                   $(".wrap .page-title-action").after(customButton);
               });
           </script>';
@@ -411,7 +413,7 @@ class Admin
   {
     global $pagenow, $typenow;
 
-    if ($pagenow == 'edit.php' && $typenow == 'opengraph_template') {
+    if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       echo '<style type="text/css">
               .page-title-action:not([class*=" "]) { display: none !important; }
           </style>';
