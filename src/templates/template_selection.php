@@ -39,7 +39,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
 ?>
 
 <div class="wrap">
-    <h1 style="margin-bottom: 20px">Choose OG Image Template</h1>
+    <h1 style="margin-bottom: 20px">Select OG Image Template</h1>
 
     <?php if ( isset( $templates['authenticated'] ) && ! $templates['authenticated'] ) : ?>
         <!-- Banner for unauthenticated users -->
@@ -119,7 +119,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
     <!-- Stock Templates Tab -->
     <div id="stock-templates" class="tab-content" style="display: <?php echo $defaultTab === 'stock-templates' ? 'block' : 'none'; ?>;">
         <div style="margin-top: 20px; margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
-            <strong>Click a card to create a template based on the example image (redirects to opengraph).</strong>
+            <strong>Click a card to create a template based on the example image. (Opens in a new tab).</strong>
         </div>
         <?php if ( !empty($stockTemplates) ) : ?>
             <div class="template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 20px;">
