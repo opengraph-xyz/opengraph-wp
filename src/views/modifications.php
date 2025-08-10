@@ -34,6 +34,23 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
   <strong>We automatically create Open Graph images for your selected page types. Select one or more page types on the right, then match the relevant variables to automatically create your Open Graph image.</strong>
 </div>
 
+<!-- Unsaved Changes Banner -->
+<div id="unsaved-changes-banner" class="initially-hidden" style="margin-bottom: 20px; border: 1px solid #d63638; background-color: #fef7f1; color: #d63638; padding: 15px; border-radius: 5px; position: sticky; top: 32px; z-index: 100;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <svg style="width: 20px; height: 20px; fill: #d63638; flex-shrink: 0;" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    </svg>
+    <strong>You have unsaved changes. Click "Update" to save your changes before navigating away.</strong>
+  </div>
+</div>
+
+<style>
+/* Hide banner initially to prevent flash */
+.initially-hidden {
+    display: none !important;
+}
+</style>
+
 <table class="form-table">
   <tbody>
     <?php if (empty($available_variables)): ?>
@@ -82,6 +99,70 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
   var dynamicTags = <?php echo wp_json_encode($dynamic_tags_json); ?>;
 
   jQuery(document).ready(function($) {
+    // Track form state
+    var formIsDirty = false;
+    var originalFormState = {};
+
+    // Function to show/hide unsaved changes banner
+    function updateUnsavedChangesBanner() {
+      var $banner = $('#unsaved-changes-banner');
+      
+      if (formIsDirty) {
+        $banner.css('display', 'block');
+      } else {
+        $banner.css('display', 'none');
+      }
+    }
+
+    // Function to mark form as dirty
+    function markFormAsDirty() {
+      formIsDirty = true;
+      updateUnsavedChangesBanner();
+    }
+
+    // Function to capture original form state
+    function captureOriginalFormState() {
+      originalFormState = {};
+      $('select[id^="opengraph-modification-"], input[id^="opengraph-custom-fields-"], #template-version-dropdown, #post_title, input[name="opengraph[post_types][]"]').each(function() {
+        var $element = $(this);
+        var id = $element.attr('id') || $element.attr('name');
+        if ($element.is('select')) {
+          originalFormState[id] = $element.val();
+        } else if ($element.is('input[type="checkbox"]')) {
+          originalFormState[id] = $element.is(':checked');
+        } else {
+          originalFormState[id] = $element.val();
+        }
+      });
+    }
+
+    // Function to check if form has changed
+    function checkFormChanges() {
+      var hasChanges = false;
+      $('select[id^="opengraph-modification-"], input[id^="opengraph-custom-fields-"], #template-version-dropdown, #post_title, input[name="opengraph[post_types][]"]').each(function() {
+        var $element = $(this);
+        var id = $element.attr('id') || $element.attr('name');
+        var currentValue;
+        
+        if ($element.is('select')) {
+          currentValue = $element.val();
+        } else if ($element.is('input[type="checkbox"]')) {
+          currentValue = $element.is(':checked');
+        } else {
+          currentValue = $element.val();
+        }
+        
+        // Only compare if we have an original value for this element
+        if (originalFormState.hasOwnProperty(id) && originalFormState[id] !== currentValue) {
+          hasChanges = true;
+          return false; // break the loop
+        }
+      });
+      
+      formIsDirty = hasChanges;
+      updateUnsavedChangesBanner();
+    }
+
     function toggleCustomFieldInput(select) {
       var $customFieldInput = select.siblings('input[id^="opengraph-custom-fields-"]');
       if ('{post_meta}' === select.val() || '{user_meta}' === select.val() || '{author_meta}' === select.val()) {
@@ -91,9 +172,55 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
       }
     }
 
+    // Capture original form state after DOM is fully ready
+    $(document).ready(function() {
+        setTimeout(function() {
+            captureOriginalFormState();
+            // Initial check to ensure we start with a clean state
+            formIsDirty = false;
+            // Enable banner functionality by removing the CSS override
+            $('#unsaved-changes-banner').removeClass('initially-hidden');
+            updateUnsavedChangesBanner();
+        }, 200);
+    });
+
     // Attach change event using event delegation
     $('.form-table').on('change', 'select[id^="opengraph-modification-"]', function() {
         toggleCustomFieldInput($(this));
+        markFormAsDirty();
+    });
+
+    // Track changes on custom field inputs
+    $('.form-table').on('input', 'input[id^="opengraph-custom-fields-"]', function() {
+        markFormAsDirty();
+    });
+
+    // Track changes on template version dropdown
+    $('#template-version-dropdown').on('change', function() {
+        markFormAsDirty();
+    });
+
+    // Track changes on post title
+    $('#post_title').on('input', function() {
+        markFormAsDirty();
+    });
+
+    // Track changes on post type checkboxes using event delegation for the entire document
+    $(document).on('change', 'input[name="opengraph[post_types][]"]', function() {
+        markFormAsDirty();
+    });
+
+    // Handle form submission to reset dirty state
+    $('form#post').on('submit', function() {
+        formIsDirty = false;
+        updateUnsavedChangesBanner();
+    });
+
+    // Warn user before leaving page with unsaved changes
+    $(window).on('beforeunload', function() {
+        if (formIsDirty) {
+            return 'You have unsaved changes. Are you sure you want to leave this page?';
+        }
     });
 
     // Trigger change event for existing select elements
@@ -219,6 +346,16 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
                   customFieldInput.val(currentSelections[customFieldId]);
                 } else {
                 }
+
+                // Add change event listeners to new elements
+                select.on('change', function() {
+                  toggleCustomFieldInput($(this));
+                  markFormAsDirty();
+                });
+
+                customFieldInput.on('input', function() {
+                  markFormAsDirty();
+                });
               });
             });
           } else {
