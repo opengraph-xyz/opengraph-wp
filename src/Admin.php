@@ -36,6 +36,9 @@ class Admin
     // Add hook to conditionally display OG Manager content
     add_action('admin_head', array($this, 'check_api_key_for_og_manager'));
     
+    // Add hook to display error messages
+    add_action('admin_notices', array($this, 'display_error_messages'));
+    
     // Enqueue scripts for admin pages
     add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
   }
@@ -114,6 +117,15 @@ class Admin
     $existing['modifications'] = isset($opengraph['modifications']) ? $opengraph['modifications'] : array();
     $existing['custom_fields'] = isset($opengraph['custom_fields']) ? $opengraph['custom_fields'] : array();
     $existing['post_types'] = isset($opengraph['post_types']) ? array_map('sanitize_text_field', $opengraph['post_types']) : array();
+
+    // Check if post types are selected (server-side validation)
+    if (empty($existing['post_types'])) {
+      // Set an error message that will be displayed
+      set_transient('opengraph_xyz_error', 'Select at least one page type.', 30);
+      // Redirect back to the edit page to prevent the update
+      wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
+      exit;
+    }
 
     // Update template_version if it's available in the form submission
     if (isset($_POST['template_version'])) {
@@ -262,7 +274,7 @@ class Admin
 
     add_meta_box(
       'opengraph_template-post-types',
-      __('Post Types', 'opengraph-xyz'),
+      __('Page Types', 'opengraph-xyz'),
       array($this, 'display_post_types'),
       null,
       'side',
@@ -442,7 +454,97 @@ class Admin
   // Enqueue scripts for admin pages
   public function enqueue_admin_scripts()
   {
-    // Add your custom scripts here
+    global $pagenow, $typenow;
+
+    // Only run on the opengraph_template post type pages
+    if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
+      // Add JavaScript validation for post types
+      echo '<script type="text/javascript">
+              jQuery(document).ready(function($) {
+                  $("#post").on("submit", function(e) {
+                      // Check if any post type checkboxes are checked
+                      var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
+                      if (checkedPostTypes.length === 0) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          showErrorToast("Select at least one page type.");
+                          return false;
+                      }
+                  });
+              });
+              
+              function showErrorToast(message) {
+                  // Remove any existing error toast
+                  $("#opengraph-xyz-error-toast").remove();
+                  
+                  var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
+                  $("body").append(toast);
+                  
+                  // Auto-hide after 5 seconds
+                  setTimeout(function() {
+                      closeErrorToast();
+                  }, 5000);
+              }
+              
+              function closeErrorToast() {
+                  const toast = document.getElementById("opengraph-xyz-error-toast");
+                  if (toast) {
+                      toast.classList.add("hiding");
+                      setTimeout(() => {
+                          toast.remove();
+                      }, 300);
+                  }
+              }
+          </script>';
+      
+      // Add CSS for the error toast (same as settings toast but red)
+      echo '<style>
+              .opengraph-xyz-toast-error {
+                position: fixed;
+                top: 32px;
+                right: 20px;
+                z-index: 999999;
+                max-width: 400px;
+                padding: 12px 16px;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: slideInRight 0.3s ease-out;
+                font-size: 14px;
+                line-height: 1.4;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 12px;
+                color: inherit;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+                opacity: 1;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+              
+              .opengraph-xyz-toast-error.hiding {
+                animation: slideOutRight 0.3s ease-in forwards;
+              }
+            </style>';
+    }
   }
 
   /**
@@ -479,6 +581,105 @@ class Admin
                   }
               });
           </script>';
+    }
+  }
+
+  /**
+   * Display error messages as toast notifications
+   */
+  public function display_error_messages()
+  {
+    global $pagenow, $typenow;
+
+    // Only run on the opengraph_template post type pages
+    if ($pagenow !== 'post.php' && $pagenow !== 'post-new.php' || $typenow !== 'opengraph_template') {
+      return;
+    }
+
+    $error_message = get_transient('opengraph_xyz_error');
+    if ($error_message) {
+      delete_transient('opengraph_xyz_error');
+      
+      // Display error toast notification
+      echo '<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error">
+              <span class="opengraph-xyz-toast-message">
+                <span class="dashicons dashicons-warning"></span>
+                ' . esc_html($error_message) . '
+              </span>
+              <button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()">
+                <span class="dashicons dashicons-no-alt"></span>
+              </button>
+            </div>';
+      
+      // Add CSS and JavaScript for the error toast
+      echo '<style>
+              .opengraph-xyz-toast-error {
+                position: fixed;
+                top: 32px;
+                right: 20px;
+                z-index: 999999;
+                max-width: 400px;
+                padding: 12px 16px;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: slideInRight 0.3s ease-out;
+                font-size: 14px;
+                line-height: 1.4;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 12px;
+                color: inherit;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+                opacity: 1;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+              
+              .opengraph-xyz-toast-error.hiding {
+                animation: slideOutRight 0.3s ease-in forwards;
+              }
+            </style>';
+      
+      echo '<script>
+              function closeErrorToast() {
+                const toast = document.getElementById("opengraph-xyz-error-toast");
+                if (toast) {
+                  toast.classList.add("hiding");
+                  setTimeout(() => {
+                    toast.remove();
+                  }, 300);
+                }
+              }
+              
+              // Auto-hide error toast after 5 seconds
+              document.addEventListener("DOMContentLoaded", function() {
+                const toast = document.getElementById("opengraph-xyz-error-toast");
+                if (toast) {
+                  setTimeout(() => {
+                    closeErrorToast();
+                  }, 5000);
+                }
+              });
+            </script>';
     }
   }
 }
