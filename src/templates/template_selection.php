@@ -54,17 +54,17 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
 
     <!-- Tab Navigation -->
     <div class="tab-navigation" style="margin-bottom: 0; border-bottom: 1px solid #dcdcde;">
-        <button class="tab-button active" data-tab="your-templates" style="padding: 12px 24px; margin-right: 0; border: 1px solid #dcdcde; border-bottom: none; background: #fff; cursor: pointer; border-radius: 4px 4px 0 0; font-weight: 500; color: #1d2327; position: relative; top: 1px;">
+        <button class="tab-button <?php echo $defaultTab === 'your-templates' ? 'active' : ''; ?>" data-tab="your-templates" style="padding: 12px 24px; margin-right: 0; border: 1px solid #dcdcde; border-bottom: none; background: <?php echo $defaultTab === 'your-templates' ? '#fff' : '#f9f9f9'; ?>; cursor: pointer; border-radius: 4px 4px 0 0; font-weight: 500; color: <?php echo $defaultTab === 'your-templates' ? '#1d2327' : '#646970'; ?>; position: relative; top: 1px;">
             Your Templates (<?php echo count($userTemplates); ?>)
         </button>
-        <button class="tab-button" data-tab="stock-templates" style="padding: 12px 24px; margin-right: 0; border: 1px solid #dcdcde; border-bottom: none; background: #f9f9f9; cursor: pointer; border-radius: 4px 4px 0 0; font-weight: 500; color: #646970; position: relative; top: 1px;">
+        <button class="tab-button <?php echo $defaultTab === 'stock-templates' ? 'active' : ''; ?>" data-tab="stock-templates" style="padding: 12px 24px; margin-right: 0; border: 1px solid #dcdcde; border-bottom: none; background: <?php echo $defaultTab === 'stock-templates' ? '#fff' : '#f9f9f9'; ?>; cursor: pointer; border-radius: 4px 4px 0 0; font-weight: 500; color: <?php echo $defaultTab === 'stock-templates' ? '#1d2327' : '#646970'; ?>; position: relative; top: 1px;">
             Stock Templates (<?php echo count($stockTemplates); ?>)
         </button>
     </div>
 
     <!-- Your Templates Tab -->
     <div id="your-templates" class="tab-content" style="display: <?php echo $defaultTab === 'your-templates' ? 'block' : 'none'; ?>;">
-        <div style="margin-top: 20px; margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
+        <div style="margin-top: 20px; margin-bottom: 20px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
             <strong>Click a template card to create a dynamic Open Graph image template.</strong>
         </div>
         <?php if ( !empty($userTemplates) ) : ?>
@@ -117,7 +117,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
 
     <!-- Stock Templates Tab -->
     <div id="stock-templates" class="tab-content" style="display: <?php echo $defaultTab === 'stock-templates' ? 'block' : 'none'; ?>;">
-        <div style="margin-top: 20px; margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
+        <div style="margin-top: 20px; margin-bottom: 20px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
             <strong>Click a card to create a template based on the example image. (Redirects to Open Graph.xyz). <br/><br/>When you're done, return here and refresh the page to start matching your variables.</strong>
         </div>
         <?php if ( !empty($stockTemplates) ) : ?>

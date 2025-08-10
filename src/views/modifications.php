@@ -30,7 +30,7 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
 <?php endif; ?>
 
 <!-- Information Box -->
-<div style="margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
+<div style="margin-bottom: 20px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
   <strong>We automatically create Open Graph images for your selected page types. Select one or more page types on the right, then match the relevant variables to automatically create your Open Graph image.</strong>
 </div>
 
