@@ -421,15 +421,28 @@ class Admin
 
   public function add_custom_button()
   {
-    global $pagenow, $typenow;
+    global $pagenow, $typenow, $post;
 
     if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
       
+      // Add Edit on Open Graph button only on post edit page (post.php) and if post has a template
+      $editButton = '';
+      if ($pagenow == 'post.php' && $post && $post->ID) {
+        $meta = \get_post_meta($post->ID, 'opengraph-xyz', true);
+        if (is_array($meta) && !empty($meta['template_id'])) {
+          $editUrl = \opengraphxyz_get_edit_template_url($meta['template_id']);
+          $editButton = '<a href="' . \esc_url($editUrl) . '" target="_blank" class="page-title-action title-edit-template">Edit on Open Graph</a>';
+        }
+      }
+      
+      // Combine both buttons into one string (Edit on Open Graph first, then Select OG Template)
+      $allButtons = $editButton . $customButton;
+      
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
-                  var customButton = \'' . $customButton . '\';
-                  $(".wrap .page-title-action").after(customButton);
+                  var allButtons = \'' . $allButtons . '\';
+                  $(".wrap .page-title-action").after(allButtons);
               });
           </script>';
     }
