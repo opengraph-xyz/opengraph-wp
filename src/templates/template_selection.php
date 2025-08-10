@@ -102,6 +102,11 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                     </form>
                 <?php endforeach; ?>
             </div>
+        <?php elseif ( !$hasApiKey ) : ?>
+            <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 6px;">
+                <p style="font-size: 1.2em; color: #666; margin-bottom: 20px;">Connect your Open Graph account with an API Key to see your custom templates.</p>
+                <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=opengraph_template&page=og-xyz-settings' ) ); ?>" style="background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Add an API Key</a>
+            </div>
         <?php else : ?>
             <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 6px;">
                 <p style="font-size: 1.2em; color: #666; margin-bottom: 20px;">You don't have any custom templates yet.</p>

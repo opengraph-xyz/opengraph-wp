@@ -33,6 +33,9 @@ class Admin
     add_action('wp_ajax_fetch_template_variables', array($this, 'fetch_template_variables'));
     add_action('wp_ajax_get_create_template_url', array($this, 'get_create_template_url'));
     
+    // Add hook to conditionally display OG Manager content
+    add_action('admin_head', array($this, 'check_api_key_for_og_manager'));
+    
     // Enqueue scripts for admin pages
     add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
   }
@@ -440,5 +443,42 @@ class Admin
   public function enqueue_admin_scripts()
   {
     // Add your custom scripts here
+  }
+
+  /**
+   * Check for API key and conditionally display OG Manager content
+   */
+  public function check_api_key_for_og_manager()
+  {
+    global $pagenow, $typenow;
+
+    // Only run on the OG Manager page (edit.php for opengraph_template post type)
+    if ($pagenow !== 'edit.php' || $typenow !== 'opengraph_template') {
+      return;
+    }
+
+    $apiKey = get_option('opengraph_xyz_api_key');
+    
+    if (empty($apiKey)) {
+      // Hide the default WordPress table and related elements, but keep the title
+      echo '<style type="text/css">
+              .wp-list-table { display: none !important; }
+              .tablenav { display: none !important; }
+              .page-title-action { display: none !important; }
+              .subsubsub { display: none !important; }
+              .search-box { display: none !important; }
+          </style>';
+      
+      // Add JavaScript to insert the message after the title (only on OG Manager page)
+      echo '<script type="text/javascript">
+              jQuery(document).ready(function($) {
+                  // Only run on the OG Manager page
+                  if (window.location.href.indexOf("edit.php?post_type=opengraph_template") !== -1 && window.location.href.indexOf("page=") === -1) {
+                      var message = \'<div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 6px; margin: 20px 0;"><p style="font-size: 1.2em; color: #666; margin-bottom: 20px;">Connect your Open Graph account with an API Key to see your OG Image Templates.</p><a href="' . esc_url(admin_url('edit.php?post_type=opengraph_template&page=og-xyz-settings')) . '" style="background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Add an API Key</a></div>\';
+                      $(".wrap h1").after(message);
+                  }
+              });
+          </script>';
+    }
   }
 }
