@@ -105,6 +105,8 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
       var postId = '<?php echo esc_js($post->ID); ?>';
       var version = $(this).val();
       
+      // Show loading overlay
+      showLoadingOverlay();
 
       // Disable the update button
       $('#publish').prop('disabled', true);
@@ -137,6 +139,8 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
         complete: function() {
           // Re-enable the update button
           $('#publish').prop('disabled', false);
+          // Hide loading overlay
+          hideLoadingOverlay();
         },
         success: function(response) {
           
@@ -233,3 +237,5 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
     });
   });
 </script>
+
+<?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
