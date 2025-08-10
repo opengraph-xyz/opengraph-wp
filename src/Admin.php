@@ -31,6 +31,16 @@ class Admin
 
     // Add hooks for AJAX
     add_action('wp_ajax_fetch_template_variables', array($this, 'fetch_template_variables'));
+    add_action('wp_ajax_get_create_template_url', array($this, 'get_create_template_url'));
+    
+    // Add hook to conditionally display OG Manager content
+    add_action('admin_head', array($this, 'check_api_key_for_og_manager'));
+    
+    // Add hook to display error messages
+    add_action('admin_notices', array($this, 'display_error_messages'));
+    
+    // Enqueue scripts for admin pages
+    add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
   }
 
   /**
@@ -50,8 +60,8 @@ class Admin
     // Add the submenu item with a different name but same slug as the main menu item
     add_submenu_page(
       'edit.php?post_type=opengraph_template', // Parent slug
-      'OpenGraph XYZ Templates',               // Page title
-      'Installed Templates',                   // Menu title
+      'OG Manager',               // Page title
+      'OG Manager',                   // Menu title
       'manage_options',                        // Capability
       'edit.php?post_type=opengraph_template', // Menu slug
       null                                     // Function (not needed as it's the same as the main menu)
@@ -107,6 +117,15 @@ class Admin
     $existing['modifications'] = isset($opengraph['modifications']) ? $opengraph['modifications'] : array();
     $existing['custom_fields'] = isset($opengraph['custom_fields']) ? $opengraph['custom_fields'] : array();
     $existing['post_types'] = isset($opengraph['post_types']) ? array_map('sanitize_text_field', $opengraph['post_types']) : array();
+
+    // Check if post types are selected (server-side validation)
+    if (empty($existing['post_types'])) {
+      // Set an error message that will be displayed
+      set_transient('opengraph_xyz_error', 'Select at least one page type.', 30);
+      // Redirect back to the edit page to prevent the update
+      wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
+      exit;
+    }
 
     // Update template_version if it's available in the form submission
     if (isset($_POST['template_version'])) {
@@ -165,6 +184,7 @@ class Admin
 
     $columns = array(
       'cb' => '<input type="checkbox" />',
+      'thumbnail' => __('Preview', 'opengraph-xyz'),
       'title' => __('Title', 'opengraph-xyz'),
       'template_id' => __('ID', 'opengraph-xyz'),
       'template_version' => __('Version', 'opengraph-xyz'),
@@ -188,6 +208,21 @@ class Admin
     $meta = get_post_meta($post_id, 'opengraph-xyz', true);
 
     switch ($column) {
+      case 'thumbnail':
+        if (isset($meta['template_id']) && isset($meta['template_version'])) {
+          // Fetch variables for this template
+          $variables = opengraphxyz_get_template_variables($post_id);
+          if (!is_wp_error($variables)) {
+            $imageUrl = opengraphxyz_generate_image_url($meta['template_id'], $meta['template_version'], $variables);
+          } else {
+            // Fallback to default if variables can't be fetched
+            $imageUrl = opengraphxyz_generate_image_url($meta['template_id'], $meta['template_version']);
+          }
+          echo '<img src="' . esc_url($imageUrl) . '" alt="Template Preview" style="width: 120px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">';
+        } else {
+          echo '&mdash;';
+        }
+        break;
       case 'template_id':
         echo isset($meta['template_id']) ? esc_html($meta['template_id']) : '&mdash;';
         break;
@@ -239,7 +274,7 @@ class Admin
 
     add_meta_box(
       'opengraph_template-post-types',
-      __('Post Types', 'opengraph-xyz'),
+      __('Page Types', 'opengraph-xyz'),
       array($this, 'display_post_types'),
       null,
       'side',
@@ -293,8 +328,8 @@ class Admin
 
     add_submenu_page(
       'edit.php?post_type=opengraph_template',
-      'Add New Template',
-      'Add New Template',
+      'Select OG Template',
+      'Select OG Template',
       'manage_options', // Standard capability
       'opengraph_template_selection',
       array($this, 'display_template_selection_page'),
@@ -303,9 +338,7 @@ class Admin
   }
 
   public function display_template_selection_page()
-  {
-    $apiKey = get_option('opengraph_xyz_api_key'); // Assuming the API key is stored with this name
-    $templates = $this->fetch_templates($apiKey);
+  {    
     // Fetch templates from opengraph.xyz API and display them
     include_once 'templates/template_selection.php';
   }
@@ -330,7 +363,7 @@ class Admin
     }
 
     // Fetch variables as per template_id and version
-    $apiUrl = 'https://api.opengraph.xyz/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $template_version;
+    $apiUrl = opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates/' . $meta['template_id'] . '/versions/' . $template_version;
     $response = wp_remote_get($apiUrl, $args);
 
     if (is_wp_error($response)) {
@@ -351,9 +384,23 @@ class Admin
     wp_send_json_success(array('variables' => $variables));
   }
 
+  // Function to handle AJAX request for getting create template URL
+  public function get_create_template_url()
+  {
+    $templateId = isset($_POST['template_id']) ? sanitize_text_field($_POST['template_id']) : '';
+    
+    if (empty($templateId)) {
+      wp_send_json_error(array('message' => 'Template ID is required.'));
+      return;
+    }
+    
+    $url = opengraphxyz_get_create_template_url($templateId);
+    wp_send_json_success(array('url' => $url));
+  }
+
   private function fetch_templates($apiKey = '')
   {
-    $apiUrl = 'https://api.opengraph.xyz/v2/api/image-editor-templates';
+    $apiUrl = opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates';
     $args = array();
 
     // Include headers only if api-key is provided
@@ -376,10 +423,12 @@ class Admin
   {
     global $pagenow, $typenow;
 
-    if ($pagenow == 'edit.php' && $typenow == 'opengraph_template') {
+    if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
+      $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
+      
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
-                  var customButton = \'<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Add New Template</a>\';
+                  var customButton = \'' . $customButton . '\';
                   $(".wrap .page-title-action").after(customButton);
               });
           </script>';
@@ -395,10 +444,242 @@ class Admin
   {
     global $pagenow, $typenow;
 
-    if ($pagenow == 'edit.php' && $typenow == 'opengraph_template') {
+    if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       echo '<style type="text/css">
               .page-title-action:not([class*=" "]) { display: none !important; }
           </style>';
+    }
+  }
+
+  // Enqueue scripts for admin pages
+  public function enqueue_admin_scripts()
+  {
+    global $pagenow, $typenow;
+
+    // Only run on the opengraph_template post type pages
+    if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
+      // Add JavaScript validation for post types
+      echo '<script type="text/javascript">
+              jQuery(document).ready(function($) {
+                  $("#post").on("submit", function(e) {
+                      // Check if any post type checkboxes are checked
+                      var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
+                      if (checkedPostTypes.length === 0) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          showErrorToast("Select at least one page type.");
+                          return false;
+                      }
+                  });
+              });
+              
+              function showErrorToast(message) {
+                  // Remove any existing error toast
+                  $("#opengraph-xyz-error-toast").remove();
+                  
+                  var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
+                  $("body").append(toast);
+                  
+                  // Auto-hide after 5 seconds
+                  setTimeout(function() {
+                      closeErrorToast();
+                  }, 5000);
+              }
+              
+              function closeErrorToast() {
+                  const toast = document.getElementById("opengraph-xyz-error-toast");
+                  if (toast) {
+                      toast.classList.add("hiding");
+                      setTimeout(() => {
+                          toast.remove();
+                      }, 300);
+                  }
+              }
+          </script>';
+      
+      // Add CSS for the error toast (same as settings toast but red)
+      echo '<style>
+              .opengraph-xyz-toast-error {
+                position: fixed;
+                top: 32px;
+                right: 20px;
+                z-index: 999999;
+                max-width: 400px;
+                padding: 12px 16px;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: slideInRight 0.3s ease-out;
+                font-size: 14px;
+                line-height: 1.4;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 12px;
+                color: inherit;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+                opacity: 1;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+              
+              .opengraph-xyz-toast-error.hiding {
+                animation: slideOutRight 0.3s ease-in forwards;
+              }
+            </style>';
+    }
+  }
+
+  /**
+   * Check for API key and conditionally display OG Manager content
+   */
+  public function check_api_key_for_og_manager()
+  {
+    global $pagenow, $typenow;
+
+    // Only run on the OG Manager page (edit.php for opengraph_template post type)
+    if ($pagenow !== 'edit.php' || $typenow !== 'opengraph_template') {
+      return;
+    }
+
+    $apiKey = get_option('opengraph_xyz_api_key');
+    
+    if (empty($apiKey)) {
+      // Hide the default WordPress table and related elements, but keep the title
+      echo '<style type="text/css">
+              .wp-list-table { display: none !important; }
+              .tablenav { display: none !important; }
+              .page-title-action { display: none !important; }
+              .subsubsub { display: none !important; }
+              .search-box { display: none !important; }
+          </style>';
+      
+      // Add JavaScript to insert the message after the title (only on OG Manager page)
+      echo '<script type="text/javascript">
+              jQuery(document).ready(function($) {
+                  // Only run on the OG Manager page
+                  if (window.location.href.indexOf("edit.php?post_type=opengraph_template") !== -1 && window.location.href.indexOf("page=") === -1) {
+                      var message = \'<div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 6px; margin: 20px 0;"><p style="font-size: 1.2em; color: #666; margin-bottom: 20px;">Connect your Open Graph account with an API Key to see your OG Image Templates.</p><a href="' . esc_url(admin_url('edit.php?post_type=opengraph_template&page=og-xyz-settings')) . '" style="background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Add an API Key</a></div>\';
+                      $(".wrap h1").after(message);
+                  }
+              });
+          </script>';
+    }
+  }
+
+  /**
+   * Display error messages as toast notifications
+   */
+  public function display_error_messages()
+  {
+    global $pagenow, $typenow;
+
+    // Only run on the opengraph_template post type pages
+    if ($pagenow !== 'post.php' && $pagenow !== 'post-new.php' || $typenow !== 'opengraph_template') {
+      return;
+    }
+
+    $error_message = get_transient('opengraph_xyz_error');
+    if ($error_message) {
+      delete_transient('opengraph_xyz_error');
+      
+      // Display error toast notification
+      echo '<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error">
+              <span class="opengraph-xyz-toast-message">
+                <span class="dashicons dashicons-warning"></span>
+                ' . esc_html($error_message) . '
+              </span>
+              <button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()">
+                <span class="dashicons dashicons-no-alt"></span>
+              </button>
+            </div>';
+      
+      // Add CSS and JavaScript for the error toast
+      echo '<style>
+              .opengraph-xyz-toast-error {
+                position: fixed;
+                top: 32px;
+                right: 20px;
+                z-index: 999999;
+                max-width: 400px;
+                padding: 12px 16px;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: slideInRight 0.3s ease-out;
+                font-size: 14px;
+                line-height: 1.4;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 12px;
+                color: inherit;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+                opacity: 1;
+              }
+              
+              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+              
+              .opengraph-xyz-toast-error.hiding {
+                animation: slideOutRight 0.3s ease-in forwards;
+              }
+            </style>';
+      
+      echo '<script>
+              function closeErrorToast() {
+                const toast = document.getElementById("opengraph-xyz-error-toast");
+                if (toast) {
+                  toast.classList.add("hiding");
+                  setTimeout(() => {
+                    toast.remove();
+                  }, 300);
+                }
+              }
+              
+              // Auto-hide error toast after 5 seconds
+              document.addEventListener("DOMContentLoaded", function() {
+                const toast = document.getElementById("opengraph-xyz-error-toast");
+                if (toast) {
+                  setTimeout(() => {
+                    closeErrorToast();
+                  }, 5000);
+                }
+              });
+            </script>';
     }
   }
 }
