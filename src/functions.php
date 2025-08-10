@@ -103,3 +103,44 @@ function opengraphxyz_get_template_versions($post_id)
 
     return isset($versions) ? $versions : array();
 }
+
+/**
+ * Generate the OG image URL with the correct number of underscores based on template variables
+ * 
+ * @param string $template_id The template ID
+ * @param string $template_version The template version
+ * @param array $variables Optional array of template variables (if not provided, will be fetched)
+ * @return string The complete image URL
+ */
+function opengraphxyz_generate_image_url($template_id, $template_version, $variables = null)
+{
+    // Start with the base URL
+    $imageUrl = "https://ogcdn.net/{$template_id}/v{$template_version}/";
+    
+    // If variables are not provided, try to get them from the template
+    if ($variables === null) {
+        // Create a temporary post meta structure to use the existing function
+        $temp_meta = array(
+            'template_id' => $template_id,
+            'template_version' => $template_version
+        );
+        
+        // We can't easily get variables without a post ID, so we'll use a default pattern
+        // This is a fallback for when variables aren't provided
+        $imageUrl .= '_/og.png';
+        return $imageUrl;
+    }
+    
+    // Add underscores for each modification in each variable
+    foreach ($variables as $variable) {
+        if (isset($variable['modifications']) && is_array($variable['modifications'])) {
+            foreach ($variable['modifications'] as $modification) {
+                $imageUrl .= '_' . '/';
+            }
+        }
+    }
+    
+    // Clean up and return the final URL
+    $imageUrl = rtrim($imageUrl, '/') . '/og.png';
+    return $imageUrl;
+}

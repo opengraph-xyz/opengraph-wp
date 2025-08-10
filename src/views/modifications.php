@@ -13,7 +13,21 @@ wp_nonce_field('opengraph-xyz', 'opengraph-xyz-nonce');
 
 $dynamic_tags_json = json_encode($dynamic_tags);
 
+// Generate thumbnail URL
+$thumbnailUrl = '';
+if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version'])) {
+  // Use the already fetched variables
+  $thumbnailUrl = opengraphxyz_generate_image_url($opengraphxyz['template_id'], $opengraphxyz['template_version'], $available_variables);
+}
+
 ?>
+
+<?php if (!empty($thumbnailUrl)): ?>
+<div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+  <h4 style="margin: 0 0 10px 0; color: #23282d;">Template Preview</h4>
+  <img src="<?php echo esc_url($thumbnailUrl); ?>" alt="Template Preview" style="width: 200px; height: 105px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+</div>
+<?php endif; ?>
 
 <table class="form-table">
   <tbody>

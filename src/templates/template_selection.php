@@ -79,13 +79,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                     $versionNumber  = $version['versionNumber'];
                     
                     // Generate image URL
-                    $imageUrl = "https://ogcdn.net/{$id}/v{$versionNumber}/";
-                    foreach ( $version['data']['variables'] as $variable ) {
-                        foreach ( $variable['modifications'] as $modification ) {
-                            $imageUrl .= '_' . '/';
-                        }
-                    }
-                    $imageUrl = rtrim( $imageUrl, '/' ) . '/og.png';
+                    $imageUrl = opengraphxyz_generate_image_url($id, $versionNumber, $version['data']['variables']);
                     ?>
                     <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="template-form" id="template-form-<?php echo esc_attr( $id ); ?>">
                         <?php wp_nonce_field( 'opengraph_xyz_select_template_action', 'opengraph_xyz_select_template_nonce' ); ?>
@@ -119,7 +113,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
     <!-- Stock Templates Tab -->
     <div id="stock-templates" class="tab-content" style="display: <?php echo $defaultTab === 'stock-templates' ? 'block' : 'none'; ?>;">
         <div style="margin-top: 20px; margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
-            <strong>Click a card to create a template based on the example image. (Opens in a new tab).</strong>
+            <strong>Click a card to create a template based on the example image. (Redirects to Open Graph.xyz).</strong>
         </div>
         <?php if ( !empty($stockTemplates) ) : ?>
             <div class="template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 20px;">
@@ -133,13 +127,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                     $versionNumber  = $version['versionNumber'];
                     
                     // Generate image URL
-                    $imageUrl = "https://ogcdn.net/{$id}/v{$versionNumber}/";
-                    foreach ( $version['data']['variables'] as $variable ) {
-                        foreach ( $variable['modifications'] as $modification ) {
-                            $imageUrl .= '_' . '/';
-                        }
-                    }
-                    $imageUrl = rtrim( $imageUrl, '/' ) . '/og.png';
+                    $imageUrl = opengraphxyz_generate_image_url($id, $versionNumber, $version['data']['variables']);
                     ?>
                     <?php if ( $premium ) : ?>
                         <!-- Premium template -->

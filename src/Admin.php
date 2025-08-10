@@ -169,6 +169,7 @@ class Admin
 
     $columns = array(
       'cb' => '<input type="checkbox" />',
+      'thumbnail' => __('Preview', 'opengraph-xyz'),
       'title' => __('Title', 'opengraph-xyz'),
       'template_id' => __('ID', 'opengraph-xyz'),
       'template_version' => __('Version', 'opengraph-xyz'),
@@ -192,6 +193,21 @@ class Admin
     $meta = get_post_meta($post_id, 'opengraph-xyz', true);
 
     switch ($column) {
+      case 'thumbnail':
+        if (isset($meta['template_id']) && isset($meta['template_version'])) {
+          // Fetch variables for this template
+          $variables = opengraphxyz_get_template_variables($post_id);
+          if (!is_wp_error($variables)) {
+            $imageUrl = opengraphxyz_generate_image_url($meta['template_id'], $meta['template_version'], $variables);
+          } else {
+            // Fallback to default if variables can't be fetched
+            $imageUrl = opengraphxyz_generate_image_url($meta['template_id'], $meta['template_version']);
+          }
+          echo '<img src="' . esc_url($imageUrl) . '" alt="Template Preview" style="width: 120px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">';
+        } else {
+          echo '&mdash;';
+        }
+        break;
       case 'template_id':
         echo isset($meta['template_id']) ? esc_html($meta['template_id']) : '&mdash;';
         break;
