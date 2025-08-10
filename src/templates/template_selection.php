@@ -160,13 +160,6 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
                                             </svg>
                                             Premium
                                         </span>
-                                    <?php else : ?>
-                                        <span style="font-size: .75rem; line-height: 1rem; padding: .25rem .5rem; border-radius: 9999px; background-color: #f3f4f6; color: #4b5563; display: inline-flex; -moz-column-gap: .375rem; column-gap: 0.375rem; align-items: center;">
-                                            <svg style="width: 0.375rem; height: 0.375rem; fill: #9ca3af;" viewBox="0 0 6 6" aria-hidden="true">
-                                                <circle cx="3" cy="3" r="3"></circle>
-                                            </svg>
-                                            Free
-                                        </span>
                                     <?php endif; ?>
                                 </div>
                             </div>
