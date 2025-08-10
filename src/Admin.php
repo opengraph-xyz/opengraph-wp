@@ -458,92 +458,95 @@ class Admin
 
     // Only run on the opengraph_template post type pages
     if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
-      // Add JavaScript validation for post types
-      echo '<script type="text/javascript">
-              jQuery(document).ready(function($) {
-                  $("#post").on("submit", function(e) {
-                      // Check if any post type checkboxes are checked
-                      var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
-                      if (checkedPostTypes.length === 0) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          showErrorToast("Select at least one page type.");
-                          return false;
-                      }
-                  });
-              });
-              
-              function showErrorToast(message) {
-                  // Remove any existing error toast
-                  $("#opengraph-xyz-error-toast").remove();
-                  
-                  var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
-                  $("body").append(toast);
-                  
-                  // Auto-hide after 5 seconds
-                  setTimeout(function() {
-                      closeErrorToast();
-                  }, 5000);
-              }
-              
-              function closeErrorToast() {
-                  const toast = document.getElementById("opengraph-xyz-error-toast");
-                  if (toast) {
-                      toast.classList.add("hiding");
-                      setTimeout(() => {
-                          toast.remove();
-                      }, 300);
-                  }
-              }
-          </script>';
+      // Enqueue jQuery as dependency
+      wp_enqueue_script('jquery');
       
-      // Add CSS for the error toast (same as settings toast but red)
-      echo '<style>
-              .opengraph-xyz-toast-error {
-                position: fixed;
-                top: 32px;
-                right: 20px;
-                z-index: 999999;
-                max-width: 400px;
-                padding: 12px 16px;
-                border-radius: 4px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                animation: slideInRight 0.3s ease-out;
-                font-size: 14px;
-                line-height: 1.4;
-                background-color: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0;
-                margin-left: 12px;
-                color: inherit;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
-                opacity: 1;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
-                font-size: 16px;
-                width: 16px;
-                height: 16px;
-              }
-              
-              .opengraph-xyz-toast-error.hiding {
-                animation: slideOutRight 0.3s ease-in forwards;
-              }
-            </style>';
+      // Add inline script with proper jQuery dependency
+      wp_add_inline_script('jquery', '
+        jQuery(document).ready(function($) {
+            $("#post").on("submit", function(e) {
+                // Check if any post type checkboxes are checked
+                var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
+                if (checkedPostTypes.length === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showErrorToast("Select at least one page type.");
+                    return false;
+                }
+            });
+        });
+        
+        function showErrorToast(message) {
+            // Remove any existing error toast
+            jQuery("#opengraph-xyz-error-toast").remove();
+            
+            var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
+            jQuery("body").append(toast);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                closeErrorToast();
+            }, 5000);
+        }
+        
+        function closeErrorToast() {
+            const toast = document.getElementById("opengraph-xyz-error-toast");
+            if (toast) {
+                toast.classList.add("hiding");
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+        }
+      ');
+      
+      // Add CSS for the error toast
+      wp_add_inline_style('wp-admin', '
+        .opengraph-xyz-toast-error {
+          position: fixed;
+          top: 32px;
+          right: 20px;
+          z-index: 999999;
+          max-width: 400px;
+          padding: 12px 16px;
+          border-radius: 4px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          animation: slideInRight 0.3s ease-out;
+          font-size: 14px;
+          line-height: 1.4;
+          background-color: #f8d7da;
+          border: 1px solid #f5c6cb;
+          color: #721c24;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          margin-left: 12px;
+          color: inherit;
+          opacity: 0.7;
+          transition: opacity 0.2s;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+          opacity: 1;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+        
+        .opengraph-xyz-toast-error.hiding {
+          animation: slideOutRight 0.3s ease-in forwards;
+        }
+      ');
     }
   }
 
