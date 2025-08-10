@@ -113,7 +113,7 @@ $defaultTab = !empty($userTemplates) ? 'your-templates' : 'stock-templates';
     <!-- Stock Templates Tab -->
     <div id="stock-templates" class="tab-content" style="display: <?php echo $defaultTab === 'stock-templates' ? 'block' : 'none'; ?>;">
         <div style="margin-top: 20px; margin-bottom: 20px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
-            <strong>Click a card to create a template based on the example image.f (Redirects to Open Graph.xyz).</strong>
+            <strong>Click a card to create a template based on the example image. (Redirects to Open Graph.xyz). <br/><br/>When you're done, return here and refresh the page to start matching your variables.</strong>
         </div>
         <?php if ( !empty($stockTemplates) ) : ?>
             <div class="template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 20px;">
