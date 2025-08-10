@@ -100,8 +100,11 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
     $('select[id^="opengraph-modification-"]').trigger('change');
 
     $('#template-version-dropdown').change(function() {
+
+
       var postId = '<?php echo esc_js($post->ID); ?>';
       var version = $(this).val();
+      
 
       // Disable the update button
       $('#publish').prop('disabled', true);
@@ -116,8 +119,10 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
         currentSelections[selectId] = selectedValue;
 
         var customFieldId = 'opengraph-custom-fields-' + selectId.split('opengraph-modification-')[1];
-        currentSelections[customFieldId] = $('#' + customFieldId).val();
+        var customFieldValue = $('#' + customFieldId).val();
+        currentSelections[customFieldId] = customFieldValue;
       });
+      
 
       tableBody.empty(); // Clear existing rows
 
@@ -134,11 +139,14 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
           $('#publish').prop('disabled', false);
         },
         success: function(response) {
+          
           if (response.success && response.data.variables && response.data.variables.length > 0) {
             var variables = response.data.variables;
 
             $.each(variables, function(i, variable) {
+              
               $.each(variable.modifications, function(j, modification) {
+                
                 var row = $('<tr></tr>');
                 var th = $('<th scope="row"></th>');
                 var label = $('<label></label>').attr({
@@ -159,7 +167,19 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
                 select.append(defaultOption);
 
                 // Add dynamic tags options
-                $.each(dynamicTags, function(tag, description) {
+                
+                // Parse dynamicTags if it's a string
+                var parsedDynamicTags = dynamicTags;
+                if (typeof dynamicTags === 'string') {
+                  try {
+                    parsedDynamicTags = JSON.parse(dynamicTags);
+                  } catch (e) {
+                    parsedDynamicTags = {};
+                  }
+                }
+                
+                
+                Object.entries(parsedDynamicTags).forEach(function([tag, description]) {
                   var option = $('<option></option>').attr({value: '{' + tag + '}'}).text(description);
                   select.append(option);
                 });
@@ -183,14 +203,17 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
 
                 // Reapply stored selections and custom field values
                 var selectId = 'opengraph-modification-' + variable.id + '__' + modification.property;
+                
                 if (currentSelections.hasOwnProperty(selectId)) {
                   select.val(currentSelections[selectId]);
                   toggleCustomFieldInput(select);
+                } else {
                 }
 
                 var customFieldId = 'opengraph-custom-fields-' + variable.id + '__' + modification.property;
                 if (currentSelections.hasOwnProperty(customFieldId)) {
                   customFieldInput.val(currentSelections[customFieldId]);
+                } else {
                 }
               });
             });
@@ -198,6 +221,13 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
             // Display message when no variables are available
             tableBody.html('<tr><td colspan="2">No modifications available for this template.</td></tr>');
           }
+        },
+        error: function(xhr, status, error) {
+          console.log('=== AJAX ERROR ===');
+          console.log('XHR:', xhr);
+          console.log('Status:', status);
+          console.log('Error:', error);
+          console.log('Response text:', xhr.responseText);
         }
       });
     });
