@@ -31,6 +31,8 @@ function opengraphxyz_get_create_template_baseurl_raw() {
     return $base_url . "/register?redirect=/org/[organizationId]/create-template/";
 }
 
+// /org/1/template-editor/c91f620c-b194-449e-86c6-f332e98caf2d
+
 /**
  * Get the OpenGraph.xyz settings URL with wp parameter
  * 
@@ -143,4 +145,15 @@ function opengraphxyz_generate_image_url($template_id, $template_version, $varia
     // Clean up and return the final URL
     $imageUrl = rtrim($imageUrl, '/') . '/og.png';
     return $imageUrl;
+}
+
+/**
+ * Get the edit template URL for a given template ID
+ * 
+ * @param string $template_id The template ID
+ * @return string The edit template URL
+ */
+function opengraphxyz_get_edit_template_url($template_id) {
+    $base_url = opengraphxyz_get_base_url();
+    return $base_url . "/register?redirect=/org/[organizationId]/template-editor/" . $template_id;
 }
