@@ -4,8 +4,8 @@ Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 5.6
-Version: 1.2.1
-Stable tag: 1.2.1
+Version: 1.2.2
+Stable tag: 1.2.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -83,7 +83,7 @@ This is our service for the og image templates. This service will be accessed wh
 
 == Changelog ==
 
-= 1.2.1 =
+= 1.2.2 =
 * Fix a bug when changing versions
 * Add an "edit on Open Graph" button
 
