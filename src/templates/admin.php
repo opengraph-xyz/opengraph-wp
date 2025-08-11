@@ -18,11 +18,15 @@ $redirected_from_opengraphxyz = isset($_GET['redirected_from_opengraphxyz']) && 
 // Check if settings were updated
 $settings_updated = isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true';
 
+$settings_errors_list = get_settings_errors('opengraph_xyz_settings');
+$has_settings_errors = !empty($settings_errors_list);
+
 ?>
+
 <div class="wrap">
     <h1>Settings</h1>
 
-    <?php if ($settings_updated): ?>
+    <?php if ($settings_updated && !$has_settings_errors): ?>
         <!-- Success Toast Notification -->
         <div id="opengraph-xyz-toast" class="opengraph-xyz-toast opengraph-xyz-toast-success">
             <span class="opengraph-xyz-toast-message">
@@ -30,6 +34,23 @@ $settings_updated = isset($_GET['settings-updated']) && $_GET['settings-updated'
                 API key saved successfully!
             </span>
             <button type="button" class="opengraph-xyz-toast-close" onclick="closeToast()">
+                <span class="dashicons dashicons-no-alt"></span>
+            </button>
+        </div>
+    <?php endif; ?>
+    <?php if ($has_settings_errors): ?>
+        <div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error">
+            <span class="opengraph-xyz-toast-message">
+                <span class="dashicons dashicons-warning"></span>
+                <?php
+                // Concatenate any messages from add_settings_error
+                echo esc_html(implode(' ', array_map(
+                    fn($e) => is_string($e['message']) ? $e['message'] : '',
+                    $settings_errors_list
+                )));
+                ?>
+            </span>
+            <button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()">
                 <span class="dashicons dashicons-no-alt"></span>
             </button>
         </div>
@@ -44,133 +65,158 @@ $settings_updated = isset($_GET['settings-updated']) && $_GET['settings-updated'
         <!-- Banner for API Key information -->
         <div class="api-key-info-banner" style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
             <strong>Need an API Key?</strong> Obtain your API key from your OpenGraph.xyz account by clicking the button below. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>.
-        
+
             <div style="margin-top:20px;">
-            <a href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary" style="background: #0073aa; border-color: #0073aa; color: white; padding: 8px 16px; font-size: 14px; line-height: 1.4; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block;">
-                <span class="dashicons dashicons-external" style="margin-right: 5px;"></span>
-                Go to OpenGraph.xyz Settings
-            </a>
-        </div>
+                <a href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary" style="background: #0073aa; border-color: #0073aa; color: white; padding: 8px 16px; font-size: 14px; line-height: 1.4; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block;">
+                    <span class="dashicons dashicons-external" style="margin-right: 5px;"></span>
+                    Go to OpenGraph.xyz Settings
+                </a>
+            </div>
         </div>
     <?php endif; ?>
-    
+
     <!-- Settings Button -->
-    
-    
+
+
     <div style="max-width: 740px;">
-      <form method="post" action="options.php">
-          <?php
-          settings_fields('opengraph_xyz_settings');
-          do_settings_sections('opengraph_xyz_settings');
-          ?>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('opengraph_xyz_settings');
+            do_settings_sections('opengraph_xyz_settings');
+            ?>
             <table class="form-table">
-              <tr valign="top">
-                  <th scope="row">API Key</th>
-                  <td><input type="text" name="opengraph_xyz_api_key" style="width: 100%" value="<?php echo esc_attr(get_option('opengraph_xyz_api_key')); ?>" /></td>
-              </tr>
-          </table>
-          <?php submit_button(); ?>
-      </form>
+                <tr valign="top">
+                    <th scope="row">API Key</th>
+                    <td><input type="text" name="opengraph_xyz_api_key" style="width: 100%" value="<?php echo esc_attr(get_option('opengraph_xyz_api_key')); ?>" /></td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
     </div>
 </div>
 
 <style>
-.opengraph-xyz-toast {
-    position: fixed;
-    top: 32px;
-    right: 20px;
-    z-index: 999999;
-    max-width: 400px;
-    padding: 12px 16px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    animation: slideInRight 0.3s ease-out;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.opengraph-xyz-toast-success {
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
-}
-
-.opengraph-xyz-toast-message {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-}
-
-.opengraph-xyz-toast-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 12px;
-    color: inherit;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.opengraph-xyz-toast-close:hover {
-    opacity: 1;
-}
-
-.opengraph-xyz-toast-close .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+    .opengraph-xyz-toast {
+        position: fixed;
+        top: 32px;
+        right: 20px;
+        z-index: 999999;
+        max-width: 400px;
+        padding: 12px 16px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        animation: slideInRight 0.3s ease-out;
+        font-size: 14px;
+        line-height: 1.4;
     }
-    to {
-        transform: translateX(0);
+
+    .opengraph-xyz-toast-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .opengraph-xyz-toast-message {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .opengraph-xyz-toast-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 12px;
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .opengraph-xyz-toast-close:hover {
         opacity: 1;
     }
-}
 
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
+    .opengraph-xyz-toast-close .dashicons {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
     }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
 
-.opengraph-xyz-toast.hiding {
-    animation: slideOutRight 0.3s ease-in forwards;
-}
+    .opengraph-xyz-toast-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .opengraph-xyz-toast.hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
 </style>
 
 <script>
-function closeToast() {
-    const toast = document.getElementById('opengraph-xyz-toast');
-    if (toast) {
-        toast.classList.add('hiding');
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
+    function closeToast() {
+        const toast = document.getElementById('opengraph-xyz-toast');
+        if (toast) {
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
     }
-}
 
-// Auto-hide toast after 5 seconds
-document.addEventListener('DOMContentLoaded', function() {
-    const toast = document.getElementById('opengraph-xyz-toast');
-    if (toast) {
-        setTimeout(() => {
-            closeToast();
-        }, 5000);
+    // Auto-hide toast after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const toast = document.getElementById('opengraph-xyz-toast');
+        if (toast) {
+            setTimeout(() => {
+                closeToast();
+            }, 5000);
+        }
+    });
+
+    function closeErrorToast() {
+        const toast = document.getElementById('opengraph-xyz-error-toast');
+        if (toast) {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }
     }
-});
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const errorToast = document.getElementById('opengraph-xyz-error-toast');
+        if (errorToast) {
+            setTimeout(() => {
+                closeErrorToast();
+            }, 5000);
+        }
+    });
 </script>
