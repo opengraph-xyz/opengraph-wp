@@ -87,7 +87,14 @@ $has_settings_errors = !empty($settings_errors_list);
             <table class="form-table">
                 <tr valign="top">
                     <th scope="row">API Key</th>
-                    <td><input type="text" name="opengraph_xyz_api_key" style="width: 100%" value="<?php echo esc_attr(get_option('opengraph_xyz_api_key')); ?>" /></td>
+                    <td>
+                        <textarea 
+                            name="opengraph_xyz_api_key" 
+                            style="width: 100%; min-height: 100px; font-family: 'Courier New', monospace; font-size: 13px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"
+                            placeholder="Paste your OpenGraph.xyz API key here..."
+                        ><?php echo esc_textarea(get_option('opengraph_xyz_api_key')); ?></textarea>
+                        <p class="description">Your API key will be securely stored and used to connect to OpenGraph.xyz services.</p>
+                    </td>
                 </tr>
             </table>
             <?php submit_button(); ?>
