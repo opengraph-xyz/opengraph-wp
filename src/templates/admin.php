@@ -102,6 +102,8 @@ $has_settings_errors = !empty($settings_errors_list);
     </div>
 </div>
 
+<?php include_once plugin_dir_path(__FILE__) . '../ui/loading-overlay.php'; ?>
+
 <style>
     .opengraph-xyz-toast {
         position: fixed;
@@ -224,6 +226,16 @@ $has_settings_errors = !empty($settings_errors_list);
             setTimeout(() => {
                 closeErrorToast();
             }, 5000);
+        }
+    });
+
+    // Show loading overlay when form is submitted
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[action="options.php"]');
+        if (form) {
+            form.addEventListener('submit', function() {
+                showLoadingOverlay();
+            });
         }
     });
 </script>
