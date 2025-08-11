@@ -243,9 +243,89 @@ class Admin
 
   public function register_plugin_settings()
   {
-    // Register a new setting for the API key
-    register_setting('opengraph_xyz_settings', 'opengraph_xyz_api_key');
+      register_setting(
+          'opengraph_xyz_settings',
+          'opengraph_xyz_api_key',
+          [
+              'type'              => 'string',
+              'sanitize_callback' => [$this, 'sanitize_api_key'],
+              'show_in_rest'      => false,
+              'default'           => '',
+          ]
+      );
   }
+
+  /**
+ * Validate API key before saving. If invalid, keep old value and surface an error.
+ */
+public function sanitize_api_key($value)
+{
+    $value = trim((string)$value);
+
+    // Allow clearing the key
+    if ($value === '') {
+        return '';
+    }
+
+    // Try a lightweight GraphQL endpoint that requires a valid key.
+    $response = wp_remote_post(
+        opengraphxyz_get_base_api_url() . '/api',
+        [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'api-key' => $value
+            ],
+            'body' => json_encode([
+                'query' => 'query CheckApiKey($apiKey: String!) { checkApiKey(apiKey: $apiKey) { valid message } }',
+                'variables' => ['apiKey' => $value]
+            ]),
+            'timeout' => 10,
+        ]
+    );
+
+    // Network failure?
+    if (is_wp_error($response)) {
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_network',
+            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Non-200 = network/server error
+    $code = wp_remote_retrieve_response_code($response);
+    if ((int)$code !== 200) {
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_network',
+            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Parse GraphQL response
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    
+    // Check if GraphQL response is valid and API key is valid
+    if (!isset($data['data']['checkApiKey']['valid']) || $data['data']['checkApiKey']['valid'] !== true) {
+        
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_invalid',
+            'Invalid API key. Please paste a valid key from OpenGraph.xyz.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Looks good
+    return $value;
+}
+
 
   /**
    * Registers the form editing metabox.
@@ -421,15 +501,28 @@ class Admin
 
   public function add_custom_button()
   {
-    global $pagenow, $typenow;
+    global $pagenow, $typenow, $post;
 
     if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
       
+      // Add Edit on Open Graph button only on post edit page (post.php) and if post has a template
+      $editButton = '';
+      if ($pagenow == 'post.php' && $post && $post->ID) {
+        $meta = \get_post_meta($post->ID, 'opengraph-xyz', true);
+        if (is_array($meta) && !empty($meta['template_id'])) {
+          $editUrl = \opengraphxyz_get_edit_template_url($meta['template_id']);
+          $editButton = '<a href="' . \esc_url($editUrl) . '" target="_blank" class="page-title-action title-edit-template">Edit on Open Graph</a>';
+        }
+      }
+      
+      // Combine both buttons into one string (Edit on Open Graph first, then Select OG Template)
+      $allButtons = $editButton . $customButton;
+      
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
-                  var customButton = \'' . $customButton . '\';
-                  $(".wrap .page-title-action").after(customButton);
+                  var allButtons = \'' . $allButtons . '\';
+                  $(".wrap .page-title-action").after(allButtons);
               });
           </script>';
     }
@@ -458,92 +551,95 @@ class Admin
 
     // Only run on the opengraph_template post type pages
     if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
-      // Add JavaScript validation for post types
-      echo '<script type="text/javascript">
-              jQuery(document).ready(function($) {
-                  $("#post").on("submit", function(e) {
-                      // Check if any post type checkboxes are checked
-                      var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
-                      if (checkedPostTypes.length === 0) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          showErrorToast("Select at least one page type.");
-                          return false;
-                      }
-                  });
-              });
-              
-              function showErrorToast(message) {
-                  // Remove any existing error toast
-                  $("#opengraph-xyz-error-toast").remove();
-                  
-                  var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
-                  $("body").append(toast);
-                  
-                  // Auto-hide after 5 seconds
-                  setTimeout(function() {
-                      closeErrorToast();
-                  }, 5000);
-              }
-              
-              function closeErrorToast() {
-                  const toast = document.getElementById("opengraph-xyz-error-toast");
-                  if (toast) {
-                      toast.classList.add("hiding");
-                      setTimeout(() => {
-                          toast.remove();
-                      }, 300);
-                  }
-              }
-          </script>';
+      // Enqueue jQuery as dependency
+      wp_enqueue_script('jquery');
       
-      // Add CSS for the error toast (same as settings toast but red)
-      echo '<style>
-              .opengraph-xyz-toast-error {
-                position: fixed;
-                top: 32px;
-                right: 20px;
-                z-index: 999999;
-                max-width: 400px;
-                padding: 12px 16px;
-                border-radius: 4px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                animation: slideInRight 0.3s ease-out;
-                font-size: 14px;
-                line-height: 1.4;
-                background-color: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0;
-                margin-left: 12px;
-                color: inherit;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
-                opacity: 1;
-              }
-              
-              .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
-                font-size: 16px;
-                width: 16px;
-                height: 16px;
-              }
-              
-              .opengraph-xyz-toast-error.hiding {
-                animation: slideOutRight 0.3s ease-in forwards;
-              }
-            </style>';
+      // Add inline script with proper jQuery dependency
+      wp_add_inline_script('jquery', '
+        jQuery(document).ready(function($) {
+            $("#post").on("submit", function(e) {
+                // Check if any post type checkboxes are checked
+                var checkedPostTypes = $("input[name=\'opengraph[post_types][]\']:checked");
+                if (checkedPostTypes.length === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showErrorToast("Select at least one page type.");
+                    return false;
+                }
+            });
+        });
+        
+        function showErrorToast(message) {
+            // Remove any existing error toast
+            jQuery("#opengraph-xyz-error-toast").remove();
+            
+            var toast = \'<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error"><span class="opengraph-xyz-toast-message"><span class="dashicons dashicons-warning"></span>\' + message + \'</span><button type="button" class="opengraph-xyz-toast-close" onclick="closeErrorToast()"><span class="dashicons dashicons-no-alt"></span></button></div>\';
+            jQuery("body").append(toast);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                closeErrorToast();
+            }, 5000);
+        }
+        
+        function closeErrorToast() {
+            const toast = document.getElementById("opengraph-xyz-error-toast");
+            if (toast) {
+                toast.classList.add("hiding");
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+        }
+      ');
+      
+      // Add CSS for the error toast
+      wp_add_inline_style('wp-admin', '
+        .opengraph-xyz-toast-error {
+          position: fixed;
+          top: 32px;
+          right: 20px;
+          z-index: 999999;
+          max-width: 400px;
+          padding: 12px 16px;
+          border-radius: 4px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          animation: slideInRight 0.3s ease-out;
+          font-size: 14px;
+          line-height: 1.4;
+          background-color: #f8d7da;
+          border: 1px solid #f5c6cb;
+          color: #721c24;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          margin-left: 12px;
+          color: inherit;
+          opacity: 0.7;
+          transition: opacity 0.2s;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close:hover {
+          opacity: 1;
+        }
+        
+        .opengraph-xyz-toast-error .opengraph-xyz-toast-close .dashicons {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+        
+        .opengraph-xyz-toast-error.hiding {
+          animation: slideOutRight 0.3s ease-in forwards;
+        }
+      ');
     }
   }
 
