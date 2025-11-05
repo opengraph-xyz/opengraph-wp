@@ -243,9 +243,89 @@ class Admin
 
   public function register_plugin_settings()
   {
-    // Register a new setting for the API key
-    register_setting('opengraph_xyz_settings', 'opengraph_xyz_api_key');
+      register_setting(
+          'opengraph_xyz_settings',
+          'opengraph_xyz_api_key',
+          [
+              'type'              => 'string',
+              'sanitize_callback' => [$this, 'sanitize_api_key'],
+              'show_in_rest'      => false,
+              'default'           => '',
+          ]
+      );
   }
+
+  /**
+ * Validate API key before saving. If invalid, keep old value and surface an error.
+ */
+public function sanitize_api_key($value)
+{
+    $value = trim((string)$value);
+
+    // Allow clearing the key
+    if ($value === '') {
+        return '';
+    }
+
+    // Try a lightweight GraphQL endpoint that requires a valid key.
+    $response = wp_remote_post(
+        opengraphxyz_get_base_api_url() . '/api',
+        [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'api-key' => $value
+            ],
+            'body' => json_encode([
+                'query' => 'query CheckApiKey($apiKey: String!) { checkApiKey(apiKey: $apiKey) { valid message } }',
+                'variables' => ['apiKey' => $value]
+            ]),
+            'timeout' => 10,
+        ]
+    );
+
+    // Network failure?
+    if (is_wp_error($response)) {
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_network',
+            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Non-200 = network/server error
+    $code = wp_remote_retrieve_response_code($response);
+    if ((int)$code !== 200) {
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_network',
+            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Parse GraphQL response
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    
+    // Check if GraphQL response is valid and API key is valid
+    if (!isset($data['data']['checkApiKey']['valid']) || $data['data']['checkApiKey']['valid'] !== true) {
+        
+        add_settings_error(
+            'opengraph_xyz_settings',
+            'opengraph_xyz_api_key_invalid',
+            'Invalid API key. Please paste a valid key from OpenGraph.xyz.',
+            'error'
+        );
+        return get_option('opengraph_xyz_api_key'); // keep old value
+    }
+
+    // Looks good
+    return $value;
+}
+
 
   /**
    * Registers the form editing metabox.
