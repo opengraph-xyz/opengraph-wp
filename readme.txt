@@ -83,6 +83,9 @@ This is our service for the og image templates. This service will be accessed wh
 
 == Changelog ==
 
+= 1.3.0 =
+* Improved compatibility with Rank Math SEO plugin
+
 = 1.2.3 =
 * Added validation when saving API Key
 
