@@ -18,14 +18,32 @@ class Renderer
    */
   public function init()
   {
+    $seo_plugin_active = false;
+
     if (defined('WPSEO_VERSION')) {
       // If Yoast SEO is active
       add_filter('wpseo_opengraph_image', array($this, 'maybe_replace_yoast_og_image'), 10, 1);
       add_filter('wpseo_opengraph_image_width', array($this, 'set_og_image_width'), 10, 1);
       add_filter('wpseo_opengraph_image_height', array($this, 'set_og_image_height'), 10, 1);
       add_filter('wpseo_opengraph_image_type', array($this, 'set_og_image_type'), 10, 1);
-    } else {
-      // If Yoast SEO is not active
+      $seo_plugin_active = true;
+    }
+
+    if (class_exists('RankMath')) {
+      // If Rank Math SEO is active
+      add_filter('rank_math/opengraph/facebook/image', array($this, 'maybe_replace_rankmath_og_image'), 10, 1);
+      add_filter('rank_math/opengraph/facebook/image_width', array($this, 'set_og_image_width'), 10, 1);
+      add_filter('rank_math/opengraph/facebook/image_height', array($this, 'set_og_image_height'), 10, 1);
+      add_filter('rank_math/opengraph/facebook/image_type', array($this, 'set_og_image_type'), 10, 1);
+      add_filter('rank_math/opengraph/twitter/image', array($this, 'maybe_replace_rankmath_og_image'), 10, 1);
+      add_filter('rank_math/opengraph/twitter/image_width', array($this, 'set_og_image_width'), 10, 1);
+      add_filter('rank_math/opengraph/twitter/image_height', array($this, 'set_og_image_height'), 10, 1);
+      add_filter('rank_math/opengraph/twitter/image_type', array($this, 'set_og_image_type'), 10, 1);
+      $seo_plugin_active = true;
+    }
+
+    if (!$seo_plugin_active) {
+      // If no SEO plugin is active
       add_action('wp_head', array($this, 'render_og_tags'), 10);
     }
   }
@@ -150,6 +168,15 @@ class Renderer
    * Maybe replace Yoast's OG image.
    */
   public function maybe_replace_yoast_og_image($image)
+  {
+    $og_image_url = $this->get_og_image_url();
+    return $og_image_url ? $og_image_url : $image;
+  }
+
+  /**
+   * Maybe replace Rank Math's OG image.
+   */
+  public function maybe_replace_rankmath_og_image($image)
   {
     $og_image_url = $this->get_og_image_url();
     return $og_image_url ? $og_image_url : $image;
