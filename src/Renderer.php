@@ -103,7 +103,7 @@ class Renderer
    */
   private function build_og_image_url($template_data)
   {
-    $base_url = 'https://ogcdn.net/'; // Base URL for the OpenGraph image service.
+    $base_url = opengraphxyz_get_base_image_url();
     $template_id = $template_data['template_id'];
     $version = 'v' . $template_data['template_version'];
     $modifications = $this->prepare_modifications($template_data);
@@ -118,7 +118,7 @@ class Renderer
       }
     }
 
-    $url = $base_url . $template_id . '/' . $version . '/' . implode('/', $modifications_encoded) . '/og.png';
+    $url = $base_url . '/' . $template_id . '/' . $version . '/' . implode('/', $modifications_encoded) . '/og.png';
     return $url;
   }
 
