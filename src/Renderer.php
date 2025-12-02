@@ -87,8 +87,10 @@ class Renderer
       $post_type = $post->post_type;
 
       if (in_array($post_type, $template_meta['post_types'], true)) {
-        $this->og_image_url = $this->build_og_image_url($template_meta);
-        return $this->og_image_url;
+        if ($this->check_filters($template_meta, $post)) {
+          $this->og_image_url = $this->build_og_image_url($template_meta);
+          return $this->og_image_url;
+        }
       }
     }
 
@@ -96,11 +98,78 @@ class Renderer
   }
 
   /**
-   * Build the OpenGraph image URL based on template data.
-   * 
-   * @param array $template_data
-   * @return string|null
+   * Check if the post matches the template filters.
+   *
+   * @param array $template_meta
+   * @param WP_Post $post
+   * @return boolean
    */
+  private function check_filters($template_meta, $post)
+  {
+    if (!isset($template_meta['filters']) || empty($template_meta['filters'])) {
+      return true;
+    }
+
+    $filters = $template_meta['filters'];
+    $has_enabled_filters = false;
+
+    // Published Date Filter
+    if (isset($filters['published_date']) && isset($filters['published_date']['enabled']) && $filters['published_date']['enabled'] === '1') {
+      $has_enabled_filters = true;
+      $condition = isset($filters['published_date']['condition']) ? $filters['published_date']['condition'] : 'after';
+      $filter_date = isset($filters['published_date']['date']) ? $filters['published_date']['date'] : '';
+
+      if (!empty($filter_date)) {
+        $post_date = get_the_date('Y-m-d', $post);
+
+        // Compare dates as strings (YYYY-MM-DD)
+        if ($condition === 'before') {
+          if ($post_date < $filter_date) {
+            return true;
+          }
+        } elseif ($condition === 'after') {
+          if ($post_date > $filter_date) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // Modified Date Filter
+    if (isset($filters['modified_date']) && isset($filters['modified_date']['enabled']) && $filters['modified_date']['enabled'] === '1') {
+      $has_enabled_filters = true;
+      $condition = isset($filters['modified_date']['condition']) ? $filters['modified_date']['condition'] : 'after';
+      $filter_date = isset($filters['modified_date']['date']) ? $filters['modified_date']['date'] : '';
+
+      if (!empty($filter_date)) {
+        $post_modified_date = get_the_modified_date('Y-m-d', $post);
+
+        // Compare dates as strings (YYYY-MM-DD)
+        if ($condition === 'before') {
+          if ($post_modified_date < $filter_date) {
+            return true;
+          }
+        } elseif ($condition === 'after') {
+          if ($post_modified_date > $filter_date) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // If no filters are enabled, the template applies to all posts
+    if (!$has_enabled_filters) {
+      return true;
+    }
+
+    // If filters were enabled but none matched, return false
+    return false;
+  }  /**
+     * Build the OpenGraph image URL based on template data.
+     * 
+     * @param array $template_data
+     * @return string|null
+     */
   private function build_og_image_url($template_data)
   {
     $base_url = opengraphxyz_get_base_image_url();

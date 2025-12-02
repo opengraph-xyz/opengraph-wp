@@ -32,13 +32,13 @@ class Admin
     // Add hooks for AJAX
     add_action('wp_ajax_fetch_template_variables', array($this, 'fetch_template_variables'));
     add_action('wp_ajax_get_create_template_url', array($this, 'get_create_template_url'));
-    
+
     // Add hook to conditionally display OG Manager content
     add_action('admin_head', array($this, 'check_api_key_for_og_manager'));
-    
+
     // Add hook to display error messages
     add_action('admin_notices', array($this, 'display_error_messages'));
-    
+
     // Enqueue scripts for admin pages
     add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
   }
@@ -118,7 +118,39 @@ class Admin
     $existing['custom_fields'] = isset($opengraph['custom_fields']) ? $opengraph['custom_fields'] : array();
     $existing['post_types'] = isset($opengraph['post_types']) ? array_map('sanitize_text_field', $opengraph['post_types']) : array();
 
-    // Check if post types are selected (server-side validation)
+    // Save filters
+    $existing['filters'] = array();
+    if (isset($opengraph['filters']) && is_array($opengraph['filters'])) {
+      $filters = $opengraph['filters'];
+      if (isset($filters['published_date'])) {
+        $existing['filters']['published_date'] = array(
+          'enabled' => isset($filters['published_date']['enabled']) ? '1' : '0',
+          'condition' => isset($filters['published_date']['condition']) && in_array($filters['published_date']['condition'], array('before', 'after')) ? $filters['published_date']['condition'] : 'after',
+          'date' => isset($filters['published_date']['date']) ? sanitize_text_field($filters['published_date']['date']) : '',
+        );
+
+        // Validation for Published Date
+        if ($existing['filters']['published_date']['enabled'] === '1' && empty($existing['filters']['published_date']['date'])) {
+          set_transient('opengraph_xyz_error', 'Please select a date for the Published Date filter.', 30);
+          wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
+          exit;
+        }
+      }
+      if (isset($filters['modified_date'])) {
+        $existing['filters']['modified_date'] = array(
+          'enabled' => isset($filters['modified_date']['enabled']) ? '1' : '0',
+          'condition' => isset($filters['modified_date']['condition']) && in_array($filters['modified_date']['condition'], array('before', 'after')) ? $filters['modified_date']['condition'] : 'after',
+          'date' => isset($filters['modified_date']['date']) ? sanitize_text_field($filters['modified_date']['date']) : '',
+        );
+
+        // Validation for Modified Date
+        if ($existing['filters']['modified_date']['enabled'] === '1' && empty($existing['filters']['modified_date']['date'])) {
+          set_transient('opengraph_xyz_error', 'Please select a date for the Modified Date filter.', 30);
+          wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
+          exit;
+        }
+      }
+    }    // Check if post types are selected (server-side validation)
     if (empty($existing['post_types'])) {
       // Set an error message that will be displayed
       set_transient('opengraph_xyz_error', 'Select at least one page type.', 30);
@@ -243,88 +275,88 @@ class Admin
 
   public function register_plugin_settings()
   {
-      register_setting(
-          'opengraph_xyz_settings',
-          'opengraph_xyz_api_key',
-          [
-              'type'              => 'string',
-              'sanitize_callback' => [$this, 'sanitize_api_key'],
-              'show_in_rest'      => false,
-              'default'           => '',
-          ]
-      );
+    register_setting(
+      'opengraph_xyz_settings',
+      'opengraph_xyz_api_key',
+      [
+        'type' => 'string',
+        'sanitize_callback' => [$this, 'sanitize_api_key'],
+        'show_in_rest' => false,
+        'default' => '',
+      ]
+    );
   }
 
   /**
- * Validate API key before saving. If invalid, keep old value and surface an error.
- */
-public function sanitize_api_key($value)
-{
-    $value = trim((string)$value);
+   * Validate API key before saving. If invalid, keep old value and surface an error.
+   */
+  public function sanitize_api_key($value)
+  {
+    $value = trim((string) $value);
 
     // Allow clearing the key
     if ($value === '') {
-        return '';
+      return '';
     }
 
     // Try a lightweight GraphQL endpoint that requires a valid key.
     $response = wp_remote_post(
-        opengraphxyz_get_base_api_url() . '/api',
-        [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'api-key' => $value
-            ],
-            'body' => json_encode([
-                'query' => 'query CheckApiKey($apiKey: String!) { checkApiKey(apiKey: $apiKey) { valid message } }',
-                'variables' => ['apiKey' => $value]
-            ]),
-            'timeout' => 10,
-        ]
+      opengraphxyz_get_base_api_url() . '/api',
+      [
+        'headers' => [
+          'Content-Type' => 'application/json',
+          'api-key' => $value
+        ],
+        'body' => json_encode([
+          'query' => 'query CheckApiKey($apiKey: String!) { checkApiKey(apiKey: $apiKey) { valid message } }',
+          'variables' => ['apiKey' => $value]
+        ]),
+        'timeout' => 10,
+      ]
     );
 
     // Network failure?
     if (is_wp_error($response)) {
-        add_settings_error(
-            'opengraph_xyz_settings',
-            'opengraph_xyz_api_key_network',
-            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
-            'error'
-        );
-        return get_option('opengraph_xyz_api_key'); // keep old value
+      add_settings_error(
+        'opengraph_xyz_settings',
+        'opengraph_xyz_api_key_network',
+        'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+        'error'
+      );
+      return get_option('opengraph_xyz_api_key'); // keep old value
     }
 
     // Non-200 = network/server error
     $code = wp_remote_retrieve_response_code($response);
-    if ((int)$code !== 200) {
-        add_settings_error(
-            'opengraph_xyz_settings',
-            'opengraph_xyz_api_key_network',
-            'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
-            'error'
-        );
-        return get_option('opengraph_xyz_api_key'); // keep old value
+    if ((int) $code !== 200) {
+      add_settings_error(
+        'opengraph_xyz_settings',
+        'opengraph_xyz_api_key_network',
+        'Could not reach OpenGraph.xyz to verify the API key. Please try again.',
+        'error'
+      );
+      return get_option('opengraph_xyz_api_key'); // keep old value
     }
 
     // Parse GraphQL response
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
-    
+
     // Check if GraphQL response is valid and API key is valid
     if (!isset($data['data']['checkApiKey']['valid']) || $data['data']['checkApiKey']['valid'] !== true) {
-        
-        add_settings_error(
-            'opengraph_xyz_settings',
-            'opengraph_xyz_api_key_invalid',
-            'Invalid API key. Please paste a valid key from OpenGraph.xyz.',
-            'error'
-        );
-        return get_option('opengraph_xyz_api_key'); // keep old value
+
+      add_settings_error(
+        'opengraph_xyz_settings',
+        'opengraph_xyz_api_key_invalid',
+        'Invalid API key. Please paste a valid key from OpenGraph.xyz.',
+        'error'
+      );
+      return get_option('opengraph_xyz_api_key'); // keep old value
     }
 
     // Looks good
     return $value;
-}
+  }
 
 
   /**
@@ -360,6 +392,25 @@ public function sanitize_api_key($value)
       'side',
       'default'
     );
+
+    add_meta_box(
+      'opengraph_template-filters',
+      __('Filters', 'opengraph-xyz'),
+      array($this, 'display_filters'),
+      null,
+      'side',
+      'default'
+    );
+  }
+
+  /**
+   * Displays the filters metabox.
+   *
+   * @since 1.3.0
+   */
+  public function display_filters($post)
+  {
+    include plugin_dir_path(__FILE__) . 'views/filters.php';
   }
 
   /**
@@ -418,7 +469,7 @@ public function sanitize_api_key($value)
   }
 
   public function display_template_selection_page()
-  {    
+  {
     // Fetch templates from opengraph.xyz API and display them
     include_once 'templates/template_selection.php';
   }
@@ -468,12 +519,12 @@ public function sanitize_api_key($value)
   public function get_create_template_url()
   {
     $templateId = isset($_POST['template_id']) ? sanitize_text_field($_POST['template_id']) : '';
-    
+
     if (empty($templateId)) {
       wp_send_json_error(array('message' => 'Template ID is required.'));
       return;
     }
-    
+
     $url = opengraphxyz_get_create_template_url($templateId);
     wp_send_json_success(array('url' => $url));
   }
@@ -505,7 +556,7 @@ public function sanitize_api_key($value)
 
     if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
-      
+
       // Add Edit on Open Graph button only on post edit page (post.php) and if post has a template
       $editButton = '';
       if ($pagenow == 'post.php' && $post && $post->ID) {
@@ -515,10 +566,10 @@ public function sanitize_api_key($value)
           $editButton = '<a href="' . \esc_url($editUrl) . '" target="_blank" class="page-title-action title-edit-template">Edit on Open Graph</a>';
         }
       }
-      
+
       // Combine both buttons into one string (Edit on Open Graph first, then Select OG Template)
       $allButtons = $editButton . $customButton;
-      
+
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
                   var allButtons = \'' . $allButtons . '\';
@@ -553,7 +604,7 @@ public function sanitize_api_key($value)
     if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
       // Enqueue jQuery as dependency
       wp_enqueue_script('jquery');
-      
+
       // Add inline script with proper jQuery dependency
       wp_add_inline_script('jquery', '
         jQuery(document).ready(function($) {
@@ -592,7 +643,7 @@ public function sanitize_api_key($value)
             }
         }
       ');
-      
+
       // Add CSS for the error toast
       wp_add_inline_style('wp-admin', '
         .opengraph-xyz-toast-error {
@@ -656,7 +707,7 @@ public function sanitize_api_key($value)
     }
 
     $apiKey = get_option('opengraph_xyz_api_key');
-    
+
     if (empty($apiKey)) {
       // Hide the default WordPress table and related elements, but keep the title
       echo '<style type="text/css">
@@ -666,7 +717,7 @@ public function sanitize_api_key($value)
               .subsubsub { display: none !important; }
               .search-box { display: none !important; }
           </style>';
-      
+
       // Add JavaScript to insert the message after the title (only on OG Manager page)
       echo '<script type="text/javascript">
               jQuery(document).ready(function($) {
@@ -695,7 +746,7 @@ public function sanitize_api_key($value)
     $error_message = get_transient('opengraph_xyz_error');
     if ($error_message) {
       delete_transient('opengraph_xyz_error');
-      
+
       // Display error toast notification
       echo '<div id="opengraph-xyz-error-toast" class="opengraph-xyz-toast opengraph-xyz-toast-error">
               <span class="opengraph-xyz-toast-message">
@@ -706,7 +757,7 @@ public function sanitize_api_key($value)
                 <span class="dashicons dashicons-no-alt"></span>
               </button>
             </div>';
-      
+
       // Add CSS and JavaScript for the error toast
       echo '<style>
               .opengraph-xyz-toast-error {
@@ -754,7 +805,7 @@ public function sanitize_api_key($value)
                 animation: slideOutRight 0.3s ease-in forwards;
               }
             </style>';
-      
+
       echo '<script>
               function closeErrorToast() {
                 const toast = document.getElementById("opengraph-xyz-error-toast");
