@@ -220,7 +220,11 @@ class Renderer
             }
           }
         }
-        return in_array((string) $post->post_author, $author_ids, true);
+
+        if ($operator === 'is_one_of') {
+          return in_array((string) $post->post_author, $author_ids, true);
+        }
+        return false;
 
       case 'category':
         $cat_ids = array();
@@ -231,7 +235,20 @@ class Renderer
             }
           }
         }
-        return has_category($cat_ids, $post);
+
+        $post_cats = wp_get_post_categories($post->ID);
+        $intersect = array_intersect($post_cats, $cat_ids);
+
+        switch ($operator) {
+          case 'is_one_of':
+            return count($intersect) > 0;
+          case 'is_all_of':
+            return count($intersect) === count($cat_ids);
+          case 'is_not_one_of':
+          case 'is_none_of':
+            return count($intersect) === 0;
+        }
+        return false;
 
       case 'post_tag':
         $tag_ids = array();
@@ -242,7 +259,20 @@ class Renderer
             }
           }
         }
-        return has_tag($tag_ids, $post);
+
+        $post_tags = wp_get_post_tags($post->ID, array('fields' => 'ids'));
+        $intersect = array_intersect($post_tags, $tag_ids);
+
+        switch ($operator) {
+          case 'is_one_of':
+            return count($intersect) > 0;
+          case 'is_all_of':
+            return count($intersect) === count($tag_ids);
+          case 'is_not_one_of':
+          case 'is_none_of':
+            return count($intersect) === 0;
+        }
+        return false;
 
       case 'published_date':
         return $this->compare_date(get_the_date('Y-m-d', $post), $operator, $value);

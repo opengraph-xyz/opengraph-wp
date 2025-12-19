@@ -22,14 +22,24 @@ jQuery( document ).ready( function ( $ ) {
 			{ value: 'not_contains', label: 'Does not contain' },
 			{ value: 'not_exact', label: 'Does not exactly match' },
 		],
-		array: [ { value: 'in', label: 'Is' } ],
+		singleEntity: [ { value: 'is_one_of', label: 'Is one of' } ],
+		multiEntity: [
+			{ value: 'is_one_of', label: 'Is one of' },
+			{ value: 'is_all_of', label: 'Is all of' },
+			{ value: 'is_not_one_of', label: 'Is not one of' },
+			{ value: 'is_none_of', label: 'Is none of' },
+		],
+		date: [
+			{ value: 'after', label: 'Is after' },
+			{ value: 'before', label: 'Is before' },
+		],
 	};
 
 	const fields = [
 		{ value: 'post_title', label: 'Post Title', type: 'string' },
-		{ value: 'post_author', label: 'Post Author', type: 'array' },
-		{ value: 'category', label: 'Category', type: 'array' },
-		{ value: 'post_tag', label: 'Tag', type: 'array' },
+		{ value: 'post_author', label: 'Post Author', type: 'singleEntity' },
+		{ value: 'category', label: 'Category', type: 'multiEntity' },
+		{ value: 'post_tag', label: 'Tag', type: 'multiEntity' },
 		{ value: 'published_date', label: 'Published Date', type: 'date' },
 		{ value: 'modified_date', label: 'Modified Date', type: 'date' },
 	];
@@ -120,8 +130,8 @@ jQuery( document ).ready( function ( $ ) {
 			const type = $( this ).find( ':selected' ).data( 'type' );
 			condition.field = newField;
 			// Reset operator if type changes
-			const availableOps =
-				type === 'array' ? operators.array : operators.string; // Simplified
+			const availableOps = operators[ type ] || operators.string;
+
 			condition.operator = availableOps[ 0 ].value;
 			condition.value = '';
 			render();
@@ -135,15 +145,7 @@ jQuery( document ).ready( function ( $ ) {
 		const $operatorSelect = $(
 			'<select name="opengraph-operator" class="og-operator-select" aria-label="Operator"></select>'
 		);
-		let ops = [];
-		if ( fieldType === 'array' ) ops = operators.array;
-		else if ( fieldType === 'date' )
-			ops = [
-				{ value: 'after', label: 'Is after' },
-				{ value: 'before', label: 'Is before' },
-			];
-		// Custom for date
-		else ops = operators.string;
+		const ops = operators[ fieldType ] || operators.string;
 
 		ops.forEach( ( op ) => {
 			$operatorSelect.append(
@@ -161,9 +163,12 @@ jQuery( document ).ready( function ( $ ) {
 		// Value Input
 		let $valueInput;
 		if (
-			[ 'exact', 'not_exact', 'in', 'not_in' ].includes(
-				condition.operator
-			) &&
+			[
+				'is_one_of',
+				'is_all_of',
+				'is_not_one_of',
+				'is_none_of',
+			].includes( condition.operator ) &&
 			[ 'category', 'post_tag', 'post_author' ].includes(
 				condition.field
 			)
