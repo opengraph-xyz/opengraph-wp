@@ -133,64 +133,7 @@ class Renderer
       return true;
     }
 
-    if (!isset($template_meta['filters']) || empty($template_meta['filters'])) {
-      return true;
-    }
-
-    $filters = $template_meta['filters'];
-    $has_enabled_filters = false;
-
-    // Published Date Filter
-    if (isset($filters['published_date']) && isset($filters['published_date']['enabled']) && $filters['published_date']['enabled'] === '1') {
-      $has_enabled_filters = true;
-      $condition = isset($filters['published_date']['condition']) ? $filters['published_date']['condition'] : 'after';
-      $filter_date = isset($filters['published_date']['date']) ? $filters['published_date']['date'] : '';
-
-      if (!empty($filter_date)) {
-        $post_date = get_the_date('Y-m-d', $post);
-
-        // Compare dates as strings (YYYY-MM-DD)
-        if ($condition === 'before') {
-          if ($post_date < $filter_date) {
-            return true;
-          }
-        } elseif ($condition === 'after') {
-          if ($post_date > $filter_date) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // Modified Date Filter
-    if (isset($filters['modified_date']) && isset($filters['modified_date']['enabled']) && $filters['modified_date']['enabled'] === '1') {
-      $has_enabled_filters = true;
-      $condition = isset($filters['modified_date']['condition']) ? $filters['modified_date']['condition'] : 'after';
-      $filter_date = isset($filters['modified_date']['date']) ? $filters['modified_date']['date'] : '';
-
-      if (!empty($filter_date)) {
-        $post_modified_date = get_the_modified_date('Y-m-d', $post);
-
-        // Compare dates as strings (YYYY-MM-DD)
-        if ($condition === 'before') {
-          if ($post_modified_date < $filter_date) {
-            return true;
-          }
-        } elseif ($condition === 'after') {
-          if ($post_modified_date > $filter_date) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // If no filters are enabled, the template applies to all posts
-    if (!$has_enabled_filters) {
-      return true;
-    }
-
-    // If filters were enabled but none matched, return false
-    return false;
+    return true;
   }
 
   /**
