@@ -106,6 +106,33 @@ class Renderer
    */
   private function check_filters($template_meta, $post)
   {
+    // New Filters Logic (filters_data)
+    if (isset($template_meta['filters_data']) && is_array($template_meta['filters_data']) && !empty($template_meta['filters_data'])) {
+      $groups = $template_meta['filters_data'];
+
+      // AND logic between groups
+      foreach ($groups as $group) {
+        if (!is_array($group) || empty($group)) {
+          continue;
+        }
+
+        $group_match = false;
+        // OR logic between conditions in a group
+        foreach ($group as $condition) {
+          if ($this->check_condition($condition, $post)) {
+            $group_match = true;
+            break;
+          }
+        }
+
+        if (!$group_match) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     if (!isset($template_meta['filters']) || empty($template_meta['filters'])) {
       return true;
     }
@@ -163,6 +190,107 @@ class Renderer
     }
 
     // If filters were enabled but none matched, return false
+    return false;
+  }
+
+  /**
+   * Check a single condition against a post.
+   * 
+   * @param array $condition
+   * @param WP_Post $post
+   * @return boolean
+   */
+  private function check_condition($condition, $post)
+  {
+    $field = isset($condition['field']) ? $condition['field'] : '';
+    $operator = isset($condition['operator']) ? $condition['operator'] : '';
+    $value = isset($condition['value']) ? $condition['value'] : '';
+
+    switch ($field) {
+      case 'post_title':
+        return $this->compare_string($post->post_title, $operator, $value);
+
+      case 'post_author':
+        // Value is array of {id, name}
+        $author_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $author_ids[] = $item['id'];
+            }
+          }
+        }
+        return in_array((string) $post->post_author, $author_ids, true);
+
+      case 'category':
+        $cat_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $cat_ids[] = $item['id'];
+            }
+          }
+        }
+        return has_category($cat_ids, $post);
+
+      case 'post_tag':
+        $tag_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $tag_ids[] = $item['id'];
+            }
+          }
+        }
+        return has_tag($tag_ids, $post);
+
+      case 'published_date':
+        return $this->compare_date(get_the_date('Y-m-d', $post), $operator, $value);
+
+      case 'modified_date':
+        return $this->compare_date(get_the_modified_date('Y-m-d', $post), $operator, $value);
+    }
+
+    return false;
+  }
+
+  private function compare_string($haystack, $operator, $needle)
+  {
+    $haystack = strtolower($haystack);
+    $needle = strtolower($needle);
+
+    switch ($operator) {
+      case 'begins_with':
+        return strpos($haystack, $needle) === 0;
+      case 'ends_with':
+        return substr($haystack, -strlen($needle)) === $needle;
+      case 'contains':
+        return strpos($haystack, $needle) !== false;
+      case 'exact':
+        return $haystack === $needle;
+      case 'not_begins_with':
+        return strpos($haystack, $needle) !== 0;
+      case 'not_ends_with':
+        return substr($haystack, -strlen($needle)) !== $needle;
+      case 'not_contains':
+        return strpos($haystack, $needle) === false;
+      case 'not_exact':
+        return $haystack !== $needle;
+    }
+    return false;
+  }
+
+  private function compare_date($date1, $operator, $date2)
+  {
+    if (empty($date2))
+      return true;
+
+    switch ($operator) {
+      case 'before':
+        return $date1 < $date2;
+      case 'after':
+        return $date1 > $date2;
+    }
     return false;
   }  /**
      * Build the OpenGraph image URL based on template data.
