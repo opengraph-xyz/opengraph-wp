@@ -7,7 +7,7 @@ $meta = get_post_meta($post->ID, 'opengraph-xyz', true);
 $current_version = isset($meta['template_version']) ? $meta['template_version'] : null;
 ?>
 
-<select id="template-version-dropdown" name="template_version" style="width: 100%; margin-top: 6px">
+<select id="template-version-dropdown" name="template_version" style="width: 100%;">
     <?php
     // Check if the current version is in the last 10 versions
     $current_version_in_list = false;

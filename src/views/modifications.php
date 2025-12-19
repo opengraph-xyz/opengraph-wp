@@ -22,36 +22,37 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
 
 ?>
 
+<style>
+  /* Responsive adjustments for modifications table */
+  #opengraph-modifications-table td select,
+  #opengraph-modifications-table td input.regular-text {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  
+  @media screen and (max-width: 782px) {
+    .form-table th, .form-table td {
+      padding: 10px 0;
+    }
+  }
+</style>
+
 <?php if (!empty($thumbnailUrl)): ?>
 <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
-  <h4 style="margin: 0 0 10px 0; color: #23282d;">Template Preview</h4>
-  <img src="<?php echo esc_url($thumbnailUrl); ?>" alt="Template Preview" style="width: 200px; height: 105px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  <div style="margin-bottom: 15px;">
+    <h4 style="margin: 0 0 10px 0; color: #23282d;">Template Preview</h4>
+    <img src="<?php echo esc_url($thumbnailUrl); ?>" alt="Template Preview" style="width: 200px; height: 105px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  </div>
+  
+  <div>
+    <h4 style="margin: 0 0 10px 0; color: #23282d;">Version</h4>
+    <?php include plugin_dir_path(__FILE__) . 'versions.php'; ?>
+  </div>
 </div>
 <?php endif; ?>
 
-<!-- Information Box -->
-<div style="margin-bottom: 20px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; border-radius: 5px;">
-  <strong>We automatically create Open Graph images for your selected page types. Select one or more page types on the right, then match the relevant variables to automatically create your Open Graph image.</strong>
-</div>
-
-<!-- Unsaved Changes Banner -->
-<div id="unsaved-changes-banner" class="initially-hidden" style="margin-bottom: 20px; border: 1px solid #d63638; background-color: #fef7f1; color: #d63638; padding: 15px; border-radius: 5px; position: sticky; top: 32px; z-index: 100;">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <svg style="width: 20px; height: 20px; fill: #d63638; flex-shrink: 0;" viewBox="0 0 24 24">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-    </svg>
-    <strong>You have unsaved changes. Click "Update" to save your changes before navigating away.</strong>
-  </div>
-</div>
-
-<style>
-/* Hide banner initially to prevent flash */
-.initially-hidden {
-    display: none !important;
-}
-</style>
-
-<table class="form-table">
+<table class="form-table" id="opengraph-modifications-table">
   <tbody>
     <?php if (empty($available_variables)): ?>
                       <tr><td colspan="2">No modifications available for this template.</td></tr>
@@ -101,23 +102,12 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
   jQuery(document).ready(function($) {
     // Track form state
     var formIsDirty = false;
+    var isSubmitting = false;
     var originalFormState = {};
-
-    // Function to show/hide unsaved changes banner
-    function updateUnsavedChangesBanner() {
-      var $banner = $('#unsaved-changes-banner');
-      
-      if (formIsDirty) {
-        $banner.css('display', 'block');
-      } else {
-        $banner.css('display', 'none');
-      }
-    }
 
     // Function to mark form as dirty
     function markFormAsDirty() {
       formIsDirty = true;
-      updateUnsavedChangesBanner();
     }
 
     // Function to capture original form state
@@ -126,14 +116,21 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
       $('select[id^="opengraph-modification-"], input[id^="opengraph-custom-fields-"], #template-version-dropdown, #post_title, input[name="opengraph[post_types][]"]').each(function() {
         var $element = $(this);
         var id = $element.attr('id') || $element.attr('name');
+        
         if ($element.is('select')) {
           originalFormState[id] = $element.val();
         } else if ($element.is('input[type="checkbox"]')) {
+          // For checkboxes with same name (arrays), append value to make ID unique
+          if (id.indexOf('[]') !== -1) {
+            id += '_' + $element.val();
+          }
           originalFormState[id] = $element.is(':checked');
         } else {
           originalFormState[id] = $element.val();
         }
       });
+      // Also capture filters data
+      originalFormState['filters_data'] = $('#opengraph-xyz-filters-data').val();
     }
 
     // Function to check if form has changed
@@ -147,6 +144,10 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
         if ($element.is('select')) {
           currentValue = $element.val();
         } else if ($element.is('input[type="checkbox"]')) {
+          // For checkboxes with same name (arrays), append value to make ID unique
+          if (id.indexOf('[]') !== -1) {
+            id += '_' + $element.val();
+          }
           currentValue = $element.is(':checked');
         } else {
           currentValue = $element.val();
@@ -158,9 +159,13 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
           return false; // break the loop
         }
       });
+
+      // Check filters data
+      if (originalFormState['filters_data'] !== $('#opengraph-xyz-filters-data').val()) {
+        hasChanges = true;
+      }
       
       formIsDirty = hasChanges;
-      updateUnsavedChangesBanner();
     }
 
     function toggleCustomFieldInput(select) {
@@ -178,9 +183,6 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
             captureOriginalFormState();
             // Initial check to ensure we start with a clean state
             formIsDirty = false;
-            // Enable banner functionality by removing the CSS override
-            $('#unsaved-changes-banner').removeClass('initially-hidden');
-            updateUnsavedChangesBanner();
         }, 200);
     });
 
@@ -210,14 +212,26 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
         markFormAsDirty();
     });
 
+    // Track changes on filters data
+    $(document).on('change', '#opengraph-xyz-filters-data', function() {
+        markFormAsDirty();
+    });
+    // Since the hidden input might be updated programmatically, we can also listen for a custom event or just rely on the beforeunload check which re-verifies everything if we implement checkFormChanges correctly.
+    // However, the current implementation of beforeunload just checks formIsDirty.
+    // Let's update the filters JS to trigger a change event on the hidden input when it updates.
+
     // Handle form submission to reset dirty state
     $('form#post').on('submit', function() {
+        isSubmitting = true;
         formIsDirty = false;
-        updateUnsavedChangesBanner();
     });
 
     // Warn user before leaving page with unsaved changes
     $(window).on('beforeunload', function() {
+        if (isSubmitting) {
+            return;
+        }
+        checkFormChanges(); // Re-check right before unloading to be sure
         if (formIsDirty) {
             return 'You have unsaved changes. Are you sure you want to leave this page?';
         }
