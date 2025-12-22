@@ -32,6 +32,7 @@ class Admin
     // Add hooks for AJAX
     add_action('wp_ajax_fetch_template_variables', array($this, 'fetch_template_variables'));
     add_action('wp_ajax_get_create_template_url', array($this, 'get_create_template_url'));
+    add_action('wp_ajax_opengraph_fetch_terms', array($this, 'fetch_terms'));
 
     // Add hook to conditionally display OG Manager content
     add_action('admin_head', array($this, 'check_api_key_for_og_manager'));
@@ -118,39 +119,18 @@ class Admin
     $existing['custom_fields'] = isset($opengraph['custom_fields']) ? $opengraph['custom_fields'] : array();
     $existing['post_types'] = isset($opengraph['post_types']) ? array_map('sanitize_text_field', $opengraph['post_types']) : array();
 
-    // Save filters
-    $existing['filters'] = array();
-    if (isset($opengraph['filters']) && is_array($opengraph['filters'])) {
-      $filters = $opengraph['filters'];
-      if (isset($filters['published_date'])) {
-        $existing['filters']['published_date'] = array(
-          'enabled' => isset($filters['published_date']['enabled']) ? '1' : '0',
-          'condition' => isset($filters['published_date']['condition']) && in_array($filters['published_date']['condition'], array('before', 'after')) ? $filters['published_date']['condition'] : 'after',
-          'date' => isset($filters['published_date']['date']) ? sanitize_text_field($filters['published_date']['date']) : '',
-        );
-
-        // Validation for Published Date
-        if ($existing['filters']['published_date']['enabled'] === '1' && empty($existing['filters']['published_date']['date'])) {
-          set_transient('opengraph_xyz_error', 'Please select a date for the Published Date filter.', 30);
-          wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
-          exit;
-        }
+    // Save filters data (new format)
+    if (isset($opengraph['filters_data'])) {
+      $filters_data_json = wp_unslash($opengraph['filters_data']);
+      $filters_data = json_decode($filters_data_json, true);
+      if (is_array($filters_data)) {
+        $existing['filters_data'] = $this->sanitize_filters_data($filters_data);
+      } else {
+        $existing['filters_data'] = array();
       }
-      if (isset($filters['modified_date'])) {
-        $existing['filters']['modified_date'] = array(
-          'enabled' => isset($filters['modified_date']['enabled']) ? '1' : '0',
-          'condition' => isset($filters['modified_date']['condition']) && in_array($filters['modified_date']['condition'], array('before', 'after')) ? $filters['modified_date']['condition'] : 'after',
-          'date' => isset($filters['modified_date']['date']) ? sanitize_text_field($filters['modified_date']['date']) : '',
-        );
+    }
 
-        // Validation for Modified Date
-        if ($existing['filters']['modified_date']['enabled'] === '1' && empty($existing['filters']['modified_date']['date'])) {
-          set_transient('opengraph_xyz_error', 'Please select a date for the Modified Date filter.', 30);
-          wp_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
-          exit;
-        }
-      }
-    }    // Check if post types are selected (server-side validation)
+    // Check if post types are selected (server-side validation)
     if (empty($existing['post_types'])) {
       // Set an error message that will be displayed
       set_transient('opengraph_xyz_error', 'Select at least one page type.', 30);
@@ -376,29 +356,20 @@ class Admin
     );
 
     add_meta_box(
-      'opengraph_template-versions',
-      __('Versions', 'opengraph-xyz'),
-      array($this, 'display_versions'),
-      null,
-      'side',
-      'default'
-    );
-
-    add_meta_box(
-      'opengraph_template-post-types',
+      'opengraph_template-page-types',
       __('Page Types', 'opengraph-xyz'),
       array($this, 'display_post_types'),
       null,
-      'side',
+      'normal',
       'default'
     );
 
     add_meta_box(
-      'opengraph_template-filters',
+      'opengraph_template-advanced-filters',
       __('Filters', 'opengraph-xyz'),
       array($this, 'display_filters'),
       null,
-      'side',
+      'normal',
       'default'
     );
   }
@@ -529,6 +500,57 @@ class Admin
     wp_send_json_success(array('url' => $url));
   }
 
+  public function fetch_terms()
+  {
+    $taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : 'category';
+    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+
+    $data = array();
+
+    if ($taxonomy === 'post_author') {
+      $args = array(
+        'search' => '*' . $search . '*',
+        'search_columns' => array('user_login', 'user_nicename', 'user_email', 'display_name'),
+        'number' => 50,
+        'fields' => array('ID', 'display_name'),
+      );
+      $user_query = new \WP_User_Query($args);
+      $authors = $user_query->get_results();
+
+      if (!empty($authors)) {
+        foreach ($authors as $author) {
+          $data[] = array(
+            'term_id' => $author->ID,
+            'name' => $author->display_name,
+          );
+        }
+      }
+    } else {
+      $args = array(
+        'taxonomy' => $taxonomy,
+        'hide_empty' => false,
+        'number' => 50,
+      );
+
+      if (!empty($search)) {
+        $args['name__like'] = $search;
+      }
+
+      $terms = get_terms($args);
+
+      if (!is_wp_error($terms)) {
+        foreach ($terms as $term) {
+          $data[] = array(
+            'term_id' => $term->term_id,
+            'name' => $term->name,
+          );
+        }
+      }
+    }
+
+    wp_send_json_success($data);
+  }
+
   private function fetch_templates($apiKey = '')
   {
     $apiUrl = opengraphxyz_get_base_api_url() . '/v2/api/image-editor-templates';
@@ -604,6 +626,10 @@ class Admin
     if (($pagenow === 'post.php' || $pagenow === 'post-new.php') && $typenow === 'opengraph_template') {
       // Enqueue jQuery as dependency
       wp_enqueue_script('jquery');
+
+      // Enqueue Admin Filters JS and CSS
+      wp_enqueue_script('opengraph-xyz-admin-filters', plugins_url('../assets/js/admin-filters.js', __FILE__), array('jquery'), '1.0.0', true);
+      wp_enqueue_style('opengraph-xyz-admin-filters', plugins_url('../assets/css/admin-filters.css', __FILE__), array(), '1.0.0');
 
       // Add inline script with proper jQuery dependency
       wp_add_inline_script('jquery', '
@@ -828,5 +854,51 @@ class Admin
               });
             </script>';
     }
+  }
+
+  private function sanitize_filters_data($data)
+  {
+    if (!is_array($data)) {
+      return array();
+    }
+    $sanitized = array();
+    foreach ($data as $group) {
+      if (!is_array($group))
+        continue;
+      $sanitized_group = array();
+      foreach ($group as $condition) {
+        if (!is_array($condition))
+          continue;
+        $sanitized_condition = array(
+          'field' => sanitize_text_field(isset($condition['field']) ? $condition['field'] : ''),
+          'operator' => sanitize_text_field(isset($condition['operator']) ? $condition['operator'] : ''),
+          'value' => $this->sanitize_filter_value(isset($condition['value']) ? $condition['value'] : ''),
+        );
+        $sanitized_group[] = $sanitized_condition;
+      }
+      if (!empty($sanitized_group)) {
+        $sanitized[] = $sanitized_group;
+      }
+    }
+    return $sanitized;
+  }
+
+  private function sanitize_filter_value($value)
+  {
+    if (is_array($value)) {
+      $sanitized = array();
+      foreach ($value as $item) {
+        if (is_array($item) && isset($item['id']) && isset($item['name'])) {
+          $sanitized[] = array(
+            'id' => sanitize_text_field($item['id']),
+            'name' => sanitize_text_field($item['name']),
+          );
+        } else {
+          $sanitized[] = sanitize_text_field($item);
+        }
+      }
+      return $sanitized;
+    }
+    return sanitize_text_field($value);
   }
 }

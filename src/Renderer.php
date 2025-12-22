@@ -106,63 +106,164 @@ class Renderer
    */
   private function check_filters($template_meta, $post)
   {
-    if (!isset($template_meta['filters']) || empty($template_meta['filters'])) {
+    // New Filters Logic (filters_data)
+    if (isset($template_meta['filters_data']) && is_array($template_meta['filters_data']) && !empty($template_meta['filters_data'])) {
+      $groups = $template_meta['filters_data'];
+
+      // AND logic between groups
+      foreach ($groups as $group) {
+        if (!is_array($group) || empty($group)) {
+          continue;
+        }
+
+        $group_match = false;
+        // OR logic between conditions in a group
+        foreach ($group as $condition) {
+          if ($this->check_condition($condition, $post)) {
+            $group_match = true;
+            break;
+          }
+        }
+
+        if (!$group_match) {
+          return false;
+        }
+      }
+
       return true;
     }
 
-    $filters = $template_meta['filters'];
-    $has_enabled_filters = false;
+    return true;
+  }
 
-    // Published Date Filter
-    if (isset($filters['published_date']) && isset($filters['published_date']['enabled']) && $filters['published_date']['enabled'] === '1') {
-      $has_enabled_filters = true;
-      $condition = isset($filters['published_date']['condition']) ? $filters['published_date']['condition'] : 'after';
-      $filter_date = isset($filters['published_date']['date']) ? $filters['published_date']['date'] : '';
+  /**
+   * Check a single condition against a post.
+   * 
+   * @param array $condition
+   * @param WP_Post $post
+   * @return boolean
+   */
+  private function check_condition($condition, $post)
+  {
+    $field = isset($condition['field']) ? $condition['field'] : '';
+    $operator = isset($condition['operator']) ? $condition['operator'] : '';
+    $value = isset($condition['value']) ? $condition['value'] : '';
 
-      if (!empty($filter_date)) {
-        $post_date = get_the_date('Y-m-d', $post);
+    switch ($field) {
+      case 'post_title':
+        return $this->compare_string($post->post_title, $operator, $value);
 
-        // Compare dates as strings (YYYY-MM-DD)
-        if ($condition === 'before') {
-          if ($post_date < $filter_date) {
-            return true;
-          }
-        } elseif ($condition === 'after') {
-          if ($post_date > $filter_date) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // Modified Date Filter
-    if (isset($filters['modified_date']) && isset($filters['modified_date']['enabled']) && $filters['modified_date']['enabled'] === '1') {
-      $has_enabled_filters = true;
-      $condition = isset($filters['modified_date']['condition']) ? $filters['modified_date']['condition'] : 'after';
-      $filter_date = isset($filters['modified_date']['date']) ? $filters['modified_date']['date'] : '';
-
-      if (!empty($filter_date)) {
-        $post_modified_date = get_the_modified_date('Y-m-d', $post);
-
-        // Compare dates as strings (YYYY-MM-DD)
-        if ($condition === 'before') {
-          if ($post_modified_date < $filter_date) {
-            return true;
-          }
-        } elseif ($condition === 'after') {
-          if ($post_modified_date > $filter_date) {
-            return true;
+      case 'post_author':
+        // Value is array of {id, name}
+        $author_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $author_ids[] = $item['id'];
+            }
           }
         }
-      }
+
+        if ($operator === 'is_one_of') {
+          return in_array((string) $post->post_author, $author_ids, true);
+        }
+        return false;
+
+      case 'category':
+        $cat_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $cat_ids[] = $item['id'];
+            }
+          }
+        }
+
+        $post_cats = wp_get_post_categories($post->ID);
+        $intersect = array_intersect($post_cats, $cat_ids);
+
+        switch ($operator) {
+          case 'is_one_of':
+            return count($intersect) > 0;
+          case 'is_all_of':
+            return count($intersect) === count($cat_ids);
+          case 'is_not_one_of':
+          case 'is_none_of':
+            return count($intersect) === 0;
+        }
+        return false;
+
+      case 'post_tag':
+        $tag_ids = array();
+        if (is_array($value)) {
+          foreach ($value as $item) {
+            if (isset($item['id'])) {
+              $tag_ids[] = $item['id'];
+            }
+          }
+        }
+
+        $post_tags = wp_get_post_tags($post->ID, array('fields' => 'ids'));
+        $intersect = array_intersect($post_tags, $tag_ids);
+
+        switch ($operator) {
+          case 'is_one_of':
+            return count($intersect) > 0;
+          case 'is_all_of':
+            return count($intersect) === count($tag_ids);
+          case 'is_not_one_of':
+          case 'is_none_of':
+            return count($intersect) === 0;
+        }
+        return false;
+
+      case 'published_date':
+        return $this->compare_date(get_the_date('Y-m-d', $post), $operator, $value);
+
+      case 'modified_date':
+        return $this->compare_date(get_the_modified_date('Y-m-d', $post), $operator, $value);
     }
 
-    // If no filters are enabled, the template applies to all posts
-    if (!$has_enabled_filters) {
+    return false;
+  }
+
+  private function compare_string($haystack, $operator, $needle)
+  {
+    $haystack = strtolower($haystack);
+    $needle = strtolower($needle);
+
+    switch ($operator) {
+      case 'begins_with':
+        return strpos($haystack, $needle) === 0;
+      case 'ends_with':
+        return substr($haystack, -strlen($needle)) === $needle;
+      case 'contains':
+        return strpos($haystack, $needle) !== false;
+      case 'exact':
+        return $haystack === $needle;
+      case 'not_begins_with':
+        return strpos($haystack, $needle) !== 0;
+      case 'not_ends_with':
+        return substr($haystack, -strlen($needle)) !== $needle;
+      case 'not_contains':
+        return strpos($haystack, $needle) === false;
+      case 'not_exact':
+        return $haystack !== $needle;
+    }
+    return false;
+  }
+
+  private function compare_date($date1, $operator, $date2)
+  {
+    if (empty($date2))
       return true;
-    }
 
-    // If filters were enabled but none matched, return false
+    switch ($operator) {
+      case 'before':
+        return $date1 < $date2;
+      case 'after':
+        return $date1 > $date2;
+    }
     return false;
   }  /**
      * Build the OpenGraph image URL based on template data.
