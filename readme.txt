@@ -1,4 +1,4 @@
-=== Dynamic Open Graph Images - OpenGraph.xyz ===
+=== AI Open Graph Image Generator - OpenGraph.xyz ===
 Contributors: opengraphxyz
 Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
@@ -8,29 +8,22 @@ Version: 1.5.1
 Stable tag: 1.5.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
-
-Enhance your WordPress site with dynamic Open Graph images.
+Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
 
 == Description ==
+This plugin connects your WordPress site to OpenGraph.xyz to automate social image generation and metadata setup for posts and pages.
 
-Enable dynamic and automatic updates of Open Graph images across your website. This plugin allows you to choose from an array of templates, both free and premium, ensuring your social media previews are always eye-catching and brand-aligned.
+= Key Features =
+- AI OG Image Template Creator: Simply enter your URL, and our AI analyzes your brand theme, colors, and content to generate a beautiful, custom OG image template in seconds.
+- Dynamic Image Automation: Once set up, every new post or listing automatically generates a unique social image. No design skills or manual uploads required.
+- Metadata Site Audit: Scan your entire website to identify missing tags, broken links, or unoptimized metadata before it affects your traffic.
+- AI Alt Text Generator: Improve accessibility and SEO automatically with AI-generated descriptions for your website images.
+- AI Meta Title & Description Generation: Let AI craft high-converting titles and descriptions for every page on your site.
+- Custom Sharing Links: Create beautiful, branded sharing links that allow you to A/B test your OG images and boost CTR.
+- Global CDN Hosting: All images are served through our lightning-fast global CDN, ensuring your previews load instantly.
 
-### What is OpenGraph.xyz?
+**Note:** This plugin requires an OpenGraph.xyz account. We offer a 7-day Free Trial with full access to all available features during the trial period (credit card required). Cancel anytime.
 
-[OpenGraph.xyz](https://www.opengraph.xyz/) is a SaaS platform designed to enhance your website's presence on social media. By generating and previewing Open Graph meta tags, OpenGraph.xyz ensures your content stands out when shared. With the introduction of dynamic Open Graph images, your website's visibility and click-through rates on social media platforms can significantly increase. This plugin brings the power of OpenGraph.xyz directly into your WordPress site, allowing for seamless integration and management.
-
-### What does this plugin do?
-
-Dynamic Open Graph Images - OpenGraph.xyz integrates your WordPress site with OpenGraph.xyz services, enabling:
-
-- Automatic generation and updating of Open Graph meta tags.
-- Selection from a variety of Open Graph image templates.
-- Access to both free and premium templates for diverse customization.
-- Enhanced social media previews to attract more clicks and engagement.
-
-### Who is this plugin for?
-
-This plugin is ideal for website owners, marketers, and content creators who want to boost their social media presence and engagement. Whether you run a blog, an e-commerce site, or a business website, dynamic Open Graph images can help your content capture attention on platforms like Facebook, Twitter, and LinkedIn.
 
 == Installation ==
 
@@ -41,19 +34,28 @@ This plugin is ideal for website owners, marketers, and content creators who wan
 
 = Do I need an OpenGraph.xyz account to use this plugin? =
 
-No, an OpenGraph.xyz account is not required to access free templates. However, to create your own branded custom Open Graph templates and access premium features, an account with OpenGraph.xyz is necessary.
+Yes, an account is required to connect your WordPress site to our automation engine. You can start with our **7-day Free Trial** at [https://www.opengraph.xyz/pricing](https://www.opengraph.xyz/pricing), which gives you full access to our Lite plan, which includes our AI Template Creator, Site Audits, and the full design suite. You can cancel at any time during the trial.
+
+= Who is this plugin for? =
+
+This plugin is designed for blogs, resource centers, listing sites, media publishers, e-commerce stores, and UGC websites that need automated Open Graph images at scale.
 
 = Is this plugin suitable for beginners? =
 
-Absolutely! Dynamic Open Graph Images - OpenGraph.xyz is designed to be user-friendly, allowing anyone to enhance their social media previews with ease.
+Absolutely. For beginners, our **AI Template Creator** does all the heavy lifting—it creates a branded design for you based on your website's URL. For users who need more control, we offer a manual editor to customize every pixel of your dynamic templates.
 
-= How do I select an Open Graph template for my website? =
+= How do I design and set up my Open Graph templates? =
 
-Once the plugin is installed and activated, navigate to the 'OpenGraph' menu in your WordPress dashboard. Here, you'll find a variety of templates to choose from. Simply select a template that aligns with your brand's identity, and it will be automatically applied to your website's Open Graph meta tags.
+After installing the plugin, you can
+- Use the **AI Template Creator** to generate a branded design automatically.
+- Select from our wide variety of **pre-designed templates**.
+- Use the **Manual Editor** to build a template from scratch.
+For detailed setup steps, check out our installation guide here.
+
 
 = How do I link template variables to WordPress variables? =
 
-Once you've selected a template, the next step is to map the template's dynamic variables to corresponding WordPress variables. For example, you can link a 'title' variable in your template to the 'Post Title' in WordPress. This ensures that the dynamic content from your site, like post titles or featured images, is automatically incorporated into your Open Graph images. You'll find these settings in the template editing interface where you can easily assign WordPress variables to your template's dynamic elements.
+Once you’ve selected a template, the next step is to map the template’s dynamic variables to corresponding WordPress variables. For example, you can link a ‘title’ variable in your template to the ‘Post Title’ in WordPress. This ensures that the dynamic content from your site, like post titles or featured images, is automatically incorporated into your Open Graph images. You’ll find these settings in the template editing interface, where you can easily assign WordPress variables to your template’s dynamic elements.
 
 = Can I use different templates for different types of content? =
 
@@ -61,7 +63,7 @@ Yes, the plugin allows you to assign different templates to different post types
 
 = How to contact OpenGraph.xyz? =
 
-If you have any questions or need assistance, you can reach out to the OpenGraph.xyz team directly. Visit our website at [OpenGraph.xyz](https://www.opengraph.xyz) and use the chat feature to get in touch with us. Our team is always ready to help you with any queries or support you may need regarding our service or the WordPress plugin.
+If you have any questions or need assistance, you can reach out to the OpenGraph.xyz team directly. Visit our website at [opengraph.xyz](https://www.opengraph.xyz) and use the chat feature to get in touch with us. Our team is always ready to help you with any queries or support you may need regarding our service or the WordPress plugin.
 
 == Screenshots ==
 
