@@ -63,7 +63,7 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
         <tr>
           <th scope="row">
             <label for="opengraph-modification-<?php echo esc_attr($variable['id']); ?>__<?php echo esc_attr($modification['property']); ?>">
-              <?php echo esc_html($variable['id']); ?> (<?php echo esc_html($modification['property']); ?>)
+              <?php echo esc_html(!empty($variable['name']) ? $variable['name'] : $variable['id']); ?> (<?php echo esc_html($modification['property']); ?>)
             </label>
           </th>
           <td>
@@ -296,7 +296,7 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
                 var th = $('<th scope="row"></th>');
                 var label = $('<label></label>').attr({
                   for: 'opengraph-modification-' + variable.id + '__' + modification.property
-                }).text(variable.id + ' (' + modification.property + ')');
+                }).text((variable.name || variable.id) + ' (' + modification.property + ')');
                 th.append(label);
                 row.append(th);
 
