@@ -4,8 +4,8 @@ Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 5.6
-Version: 1.5.1
-Stable tag: 1.5.1
+Version: 1.5.2
+Stable tag: 1.5.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
@@ -74,21 +74,25 @@ If you have any questions or need assistance, you can reach out to the OpenGraph
 
 == External Services ==
 
-= ogcdn.net = 
+= ogcdn.net =
 This is our open graph image generation service to create your og image. The URLs of your generated og:image tags point to this service with data about your page to dynamically create the images.
 [Terms of Service](https://www.opengraph.xyz/page/terms-of-service) | [Privacy Policy](https://www.opengraph.xyz/page/privacy-policy)
 
-= api.opengraph.xyz = 
+= api.opengraph.xyz =
 This is our service for the og image templates. This service will be accessed when you view and choose image templates for your pages.
 [Terms of Service](https://www.opengraph.xyz/page/terms-of-service) | [Privacy Policy](https://www.opengraph.xyz/page/privacy-policy)
 
 
 == Changelog ==
 
+= 1.5.2 =
+* Updated Readme with new features and FAQs
+* Display Layer names instead of variables on the Template Details page
+
 = 1.5.1 =
 * Updated default dashboard URL to dashboard.opengraph.xyz
 
-= 1.5.0 = 
+= 1.5.0 =
 * Added advanced filters for templates
 
 = 1.4.0 =
