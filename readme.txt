@@ -11,7 +11,15 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
 
 == Description ==
-This plugin connects your WordPress site to OpenGraph.xyz to automate social image generation and metadata setup for posts and pages.
+**Stop losing clicks to boring social previews. Boost your Click-Through Rate (CTR) by up to 70% with AI-powered, dynamic Open Graph images.**
+
+Most websites suffer from "broken" or generic social media previews. If you have a resource-rich site—like a news portal, real estate listing site, e-commerce store, or a large blog—manually designing and uploading Open Graph (OG) images for every page is impossible.
+
+**[OpenGraph.xyz](https://www.opengraph.xyz)** solves this by automating your entire social metadata workflow.
+
+
+= Why OpenGraph.xyz? =
+Our plugin bridges the gap between your WordPress site and the [OpenGraph.xyz](https://www.opengraph.xyz) SaaS platform. We’ve seen specialized links jump by 70% in CTR when switching from static, unoptimized images to our dynamic, branded previews.
 
 = Key Features =
 - AI OG Image Template Creator: Simply enter your URL, and our AI analyzes your brand theme, colors, and content to generate a beautiful, custom OG image template in seconds.
@@ -22,7 +30,7 @@ This plugin connects your WordPress site to OpenGraph.xyz to automate social ima
 - Custom Sharing Links: Create beautiful, branded sharing links that allow you to A/B test your OG images and boost CTR.
 - Global CDN Hosting: All images are served through our lightning-fast global CDN, ensuring your previews load instantly.
 
-**Note:** This plugin requires an OpenGraph.xyz account. We offer a 7-day Free Trial with full access to all available features during the trial period (credit card required). Cancel anytime.
+**Note:** This plugin requires an [OpenGraph.xyz](https://www.opengraph.xyz) account. We offer a 7-day Free Trial with full access to all available features during the trial period (credit card required). Cancel anytime.
 
 
 == Installation ==
@@ -34,7 +42,7 @@ This plugin connects your WordPress site to OpenGraph.xyz to automate social ima
 
 = Do I need an OpenGraph.xyz account to use this plugin? =
 
-Yes, an account is required to connect your WordPress site to our automation engine. You can start with our **7-day Free Trial** at [https://www.opengraph.xyz/pricing](https://www.opengraph.xyz/pricing), which gives you full access to our Lite plan, which includes our AI Template Creator, Site Audits, and the full design suite. You can cancel at any time during the trial.
+Yes, an account is required to connect your WordPress site to our automation engine. You can start with our **[7-day Free Trial](https://www.opengraph.xyz/pricing)**, which gives you full access to our Lite plan, which includes our AI Template Creator, Site Audits, and the full design suite. You can cancel at any time during the trial.
 
 = Who is this plugin for? =
 
@@ -63,7 +71,7 @@ Yes, the plugin allows you to assign different templates to different post types
 
 = How to contact OpenGraph.xyz? =
 
-If you have any questions or need assistance, you can reach out to the OpenGraph.xyz team directly. Visit our website at [opengraph.xyz](https://www.opengraph.xyz) and use the chat feature to get in touch with us. Our team is always ready to help you with any queries or support you may need regarding our service or the WordPress plugin.
+If you have any questions or need assistance, you can reach out to the [OpenGraph.xyz](https://www.opengraph.xyz) team directly. Visit our website at [opengraph.xyz](https://www.opengraph.xyz) and use the chat feature to get in touch with us. Our team is always ready to help you with any queries or support you may need regarding our service or the WordPress plugin.
 
 == Screenshots ==
 
