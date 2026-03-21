@@ -7,11 +7,15 @@ You are helping release a new version of the **opengraph-xyz** WordPress plugin.
 
 ## Step 1 — Determine the version bump type
 
-Ask the user:
+Use the `vscode_askQuestions` tool to ask the following question inline with predefined options:
 
-> Is this a **patch** (bug fix), **minor** (new feature, backwards-compatible), or **major** (breaking change) release?
+- Question: "What type of version bump is this?"
+- Options:
+  - `patch` — Bug fix (e.g. 1.5.4 → 1.5.5)
+  - `minor` — New feature, backwards-compatible (e.g. 1.5.4 → 1.6.0)
+  - `major` — Breaking change (e.g. 1.5.4 → 2.0.0)
 
-Wait for their answer before proceeding.
+Wait for the user's selection before proceeding.
 
 ## Step 2 — Read the current version
 
@@ -45,8 +49,6 @@ Update **both** files atomically:
 = X.Y.Z =
 * <bullet points from step 4>
 ```
-
-Show the user the proposed changelog entry and version numbers before making any file changes, and ask for confirmation.
 
 ## Step 6 — Walk through the deploy steps
 
