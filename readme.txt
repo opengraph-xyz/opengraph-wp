@@ -4,8 +4,8 @@ Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 5.6
-Version: 1.5.2
-Stable tag: 1.5.2
+Version: 1.5.3
+Stable tag: 1.5.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
@@ -92,6 +92,9 @@ This is our service for the og image templates. This service will be accessed wh
 
 
 == Changelog ==
+
+= 1.5.3 =
+* Fix plugin version header to correctly reflect 1.5.2 release
 
 = 1.5.2 =
 * Updated Readme with new features and FAQs
