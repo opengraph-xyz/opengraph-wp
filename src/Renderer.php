@@ -42,10 +42,214 @@ class Renderer
       $seo_plugin_active = true;
     }
 
+    // Jetpack (Sharing / Jetpack Social Open Graph tags).
+    // Override the image inside Jetpack's tag array instead of letting it win.
+    // See https://jetpack.com/resources/remove-open-graph-meta-tags/
+    add_filter('jetpack_open_graph_tags', array($this, 'maybe_replace_jetpack_og_tags'), 99, 1);
+    if ($this->is_jetpack_og_active()) {
+      $seo_plugin_active = true;
+    }
+
+    // All in One SEO (AIOSEO) 4.x.
+    add_filter('aioseo_facebook_tags', array($this, 'maybe_replace_aioseo_facebook_tags'), 99, 1);
+    add_filter('aioseo_twitter_tags', array($this, 'maybe_replace_aioseo_twitter_tags'), 99, 1);
+    if (defined('AIOSEO_VERSION')) {
+      $seo_plugin_active = true;
+    }
+
+    // SEOPress.
+    add_filter('seopress_social_og_thumb', array($this, 'maybe_replace_seopress_og_image'), 99, 1);
+    add_filter('seopress_social_twitter_card_thumb', array($this, 'maybe_replace_seopress_og_image'), 99, 1);
+    if (defined('SEOPRESS_VERSION')) {
+      $seo_plugin_active = true;
+    }
+
+    // The SEO Framework.
+    add_filter('the_seo_framework_og_image_args', array($this, 'maybe_replace_tsf_og_image_args'), 99, 1);
+    add_filter('the_seo_framework_twitter_image_args', array($this, 'maybe_replace_tsf_og_image_args'), 99, 1);
+    if (defined('THE_SEO_FRAMEWORK_VERSION')) {
+      $seo_plugin_active = true;
+    }
+
+    // Slim SEO.
+    add_filter('slim_seo_open_graph_tags', array($this, 'maybe_replace_slim_seo_og_tags'), 99, 1);
+    if (defined('SLIM_SEO_VER') || defined('SLIM_SEO_VERSION')) {
+      $seo_plugin_active = true;
+    }
+
     if (!$seo_plugin_active) {
-      // If no SEO plugin is active
+      // If no SEO / Open Graph plugin is active
       add_action('wp_head', array($this, 'render_og_tags'), 10);
     }
+  }
+
+  /**
+   * Determine whether Jetpack is actively outputting Open Graph tags.
+   *
+   * @return boolean
+   */
+  private function is_jetpack_og_active()
+  {
+    if (!class_exists('Jetpack')) {
+      return false;
+    }
+
+    if (method_exists('Jetpack', 'is_module_active')) {
+      if (\Jetpack::is_module_active('publicize') || \Jetpack::is_module_active('sharedaddy')) {
+        return true;
+      }
+    }
+
+    // Respect an explicit override of Jetpack's Open Graph output.
+    return (bool) apply_filters('jetpack_enable_open_graph', false);
+  }
+
+  /**
+   * Replace the image within Jetpack's Open Graph tag array.
+   *
+   * @param array $tags
+   * @return array
+   */
+  public function maybe_replace_jetpack_og_tags($tags)
+  {
+    $og_image_url = $this->get_og_image_url();
+
+    if (!$og_image_url || !is_array($tags)) {
+      return $tags;
+    }
+
+    $tags['og:image'] = $og_image_url;
+    $tags['og:image:secure_url'] = $og_image_url;
+    $tags['og:image:width'] = $this->og_image_width;
+    $tags['og:image:height'] = $this->og_image_height;
+    $tags['og:image:type'] = $this->og_image_type;
+    $tags['twitter:image'] = $og_image_url;
+
+    if (isset($tags['twitter:card'])) {
+      $tags['twitter:card'] = 'summary_large_image';
+    }
+
+    return $tags;
+  }
+
+  /**
+   * Replace the image within AIOSEO's Facebook (Open Graph) tag array.
+   *
+   * @param array $tags
+   * @return array
+   */
+  public function maybe_replace_aioseo_facebook_tags($tags)
+  {
+    $og_image_url = $this->get_og_image_url();
+
+    if (!$og_image_url || !is_array($tags)) {
+      return $tags;
+    }
+
+    $tags['og:image'] = $og_image_url;
+    $tags['og:image:secure_url'] = $og_image_url;
+    $tags['og:image:width'] = $this->og_image_width;
+    $tags['og:image:height'] = $this->og_image_height;
+    $tags['og:image:type'] = $this->og_image_type;
+
+    return $tags;
+  }
+
+  /**
+   * Replace the image within AIOSEO's Twitter tag array.
+   *
+   * @param array $tags
+   * @return array
+   */
+  public function maybe_replace_aioseo_twitter_tags($tags)
+  {
+    $og_image_url = $this->get_og_image_url();
+
+    if (!$og_image_url || !is_array($tags)) {
+      return $tags;
+    }
+
+    $tags['twitter:image'] = $og_image_url;
+
+    return $tags;
+  }
+
+  /**
+   * Replace SEOPress' social image URL (Open Graph and Twitter).
+   *
+   * @param string $image
+   * @return string
+   */
+  public function maybe_replace_seopress_og_image($image)
+  {
+    $og_image_url = $this->get_og_image_url();
+    return $og_image_url ? $og_image_url : $image;
+  }
+
+  /**
+   * Replace the image within The SEO Framework's image args.
+   *
+   * @param array $args
+   * @return array
+   */
+  public function maybe_replace_tsf_og_image_args($args)
+  {
+    $og_image_url = $this->get_og_image_url();
+
+    if (!$og_image_url || !is_array($args)) {
+      return $args;
+    }
+
+    if (array_key_exists('image', $args)) {
+      $args['image'] = $og_image_url;
+    }
+
+    if (array_key_exists('url', $args)) {
+      $args['url'] = $og_image_url;
+    }
+
+    return $args;
+  }
+
+  /**
+   * Replace the image within Slim SEO's Open Graph tag array.
+   *
+   * @param array $tags
+   * @return array
+   */
+  public function maybe_replace_slim_seo_og_tags($tags)
+  {
+    $og_image_url = $this->get_og_image_url();
+
+    if (!$og_image_url || !is_array($tags)) {
+      return $tags;
+    }
+
+    if (array_key_exists('og:image', $tags)) {
+      $tags['og:image'] = $og_image_url;
+    }
+
+    if (array_key_exists('og:image:secure_url', $tags)) {
+      $tags['og:image:secure_url'] = $og_image_url;
+    }
+
+    if (array_key_exists('og:image:width', $tags)) {
+      $tags['og:image:width'] = $this->og_image_width;
+    }
+
+    if (array_key_exists('og:image:height', $tags)) {
+      $tags['og:image:height'] = $this->og_image_height;
+    }
+
+    if (array_key_exists('og:image:type', $tags)) {
+      $tags['og:image:type'] = $this->og_image_type;
+    }
+
+    if (array_key_exists('twitter:image', $tags)) {
+      $tags['twitter:image'] = $og_image_url;
+    }
+
+    return $tags;
   }
 
   /**
