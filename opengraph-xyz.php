@@ -3,7 +3,7 @@
 Plugin Name: OpenGraph.xyz
 Plugin URI: https://github.com/opengraph-xyz/opengraph-wp
 Description: Dynamic Open Graph images for your website
-Version: 1.5.6
+Version: 1.5.7
 Author: OpenGraph.xyz
 Author URI: https://opengraph.xyz
 License: GPLv3
