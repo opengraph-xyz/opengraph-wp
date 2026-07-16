@@ -2,7 +2,7 @@
 Contributors: opengraphxyz
 Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 7.1
 Requires PHP: 5.6
 Version: 1.5.6
 Stable tag: 1.5.6
