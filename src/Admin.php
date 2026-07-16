@@ -119,8 +119,15 @@ class Admin
     $existing['custom_fields'] = isset($opengraph['custom_fields']) ? $opengraph['custom_fields'] : array();
     $existing['post_types'] = isset($opengraph['post_types']) ? array_map('sanitize_text_field', $opengraph['post_types']) : array();
 
-    // Save filters data (new format)
-    if (isset($opengraph['filters_data'])) {
+    // Save the server-rendered filters when JavaScript is unavailable.
+    if (isset($opengraph['filter_groups'])) {
+      $filters_data = $this->normalize_posted_filter_groups($opengraph['filter_groups']);
+      $filter_action = isset($_POST['opengraph_filter_action']) ? sanitize_text_field(wp_unslash($_POST['opengraph_filter_action'])) : '';
+      $filters_data = $this->apply_filter_action($filters_data, $filter_action);
+      $existing['filters_data'] = $this->sanitize_filters_data($filters_data);
+    } elseif (isset($_POST['opengraph_filter_action']) && sanitize_text_field(wp_unslash($_POST['opengraph_filter_action'])) === 'add_group') {
+      $existing['filters_data'] = array(array($this->get_default_filter_condition()));
+    } elseif (isset($opengraph['filters_data'])) {
       $filters_data_json = wp_unslash($opengraph['filters_data']);
       $filters_data = json_decode($filters_data_json, true);
       if (is_array($filters_data)) {
@@ -629,7 +636,7 @@ class Admin
 
       // Enqueue Admin Filters JS and CSS
       wp_enqueue_script('opengraph-xyz-admin-filters', plugins_url('../assets/js/admin-filters.js', __FILE__), array('jquery'), '1.0.0', true);
-      wp_enqueue_style('opengraph-xyz-admin-filters', plugins_url('../assets/css/admin-filters.css', __FILE__), array(), '1.0.0');
+      wp_enqueue_style('opengraph-xyz-admin-filters', plugins_url('../assets/css/admin-filters.css', __FILE__), array(), '1.0.1');
 
       // Add inline script with proper jQuery dependency
       wp_add_inline_script('jquery', '
@@ -881,6 +888,91 @@ class Admin
       }
     }
     return $sanitized;
+  }
+
+  private function normalize_posted_filter_groups($groups)
+  {
+    if (!is_array($groups)) {
+      return array();
+    }
+
+    foreach ($groups as &$group) {
+      if (!is_array($group)) {
+        $group = array();
+        continue;
+      }
+
+      foreach ($group as &$condition) {
+        if (!is_array($condition)) {
+          continue;
+        }
+
+        $field = isset($condition['field']) ? sanitize_text_field($condition['field']) : '';
+        $value = isset($condition['value']) ? $condition['value'] : '';
+        if (!is_array($value) || !in_array($field, array('category', 'post_tag', 'post_author'), true)) {
+          continue;
+        }
+
+        $condition['value'] = array();
+        foreach ($value as $id) {
+          $id = absint($id);
+          if (!$id) {
+            continue;
+          }
+
+          if ($field === 'post_author') {
+            $user = get_user_by('id', $id);
+            if ($user) {
+              $condition['value'][] = array('id' => $id, 'name' => $user->display_name);
+            }
+          } else {
+            $term = get_term($id, $field);
+            if ($term && !is_wp_error($term)) {
+              $condition['value'][] = array('id' => $id, 'name' => $term->name);
+            }
+          }
+        }
+      }
+      unset($condition);
+    }
+    unset($group);
+
+    return $groups;
+  }
+
+  private function apply_filter_action($groups, $action)
+  {
+    if ($action === 'add_group') {
+      $groups[] = array($this->get_default_filter_condition());
+    } elseif (strpos($action, 'add_condition:') === 0) {
+      $group_index = absint(substr($action, strlen('add_condition:')));
+      if (isset($groups[$group_index])) {
+        $groups[$group_index][] = $this->get_default_filter_condition();
+      }
+    } elseif (strpos($action, 'remove_condition:') === 0) {
+      $indexes = explode(':', substr($action, strlen('remove_condition:')));
+      $group_index = isset($indexes[0]) ? absint($indexes[0]) : -1;
+      $condition_index = isset($indexes[1]) ? absint($indexes[1]) : -1;
+      if (isset($groups[$group_index][$condition_index])) {
+        unset($groups[$group_index][$condition_index]);
+        $groups[$group_index] = array_values($groups[$group_index]);
+        if (empty($groups[$group_index])) {
+          unset($groups[$group_index]);
+          $groups = array_values($groups);
+        }
+      }
+    }
+
+    return $groups;
+  }
+
+  private function get_default_filter_condition()
+  {
+    return array(
+      'field' => 'post_title',
+      'operator' => 'contains',
+      'value' => '',
+    );
   }
 
   private function sanitize_filter_value($value)
