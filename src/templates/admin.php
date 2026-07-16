@@ -9,8 +9,7 @@ if (!current_user_can('manage_options')) {
     return;
 }
 
-// Get the settings URL using the helper function
-$settings_url = opengraphxyz_get_settings_url();
+$settings_url = opengraphxyz_get_base_url() . '/settings/api-keys';
 
 // Check if user was redirected from OpenGraph.xyz
 $redirected_from_opengraphxyz = isset($_GET['redirected_from_opengraphxyz']) && $_GET['redirected_from_opengraphxyz'] === 'true';
@@ -58,18 +57,21 @@ $has_settings_errors = !empty($settings_errors_list);
 
     <?php if ($redirected_from_opengraphxyz): ?>
         <!-- Message for users redirected from OpenGraph.xyz -->
-        <div class="api-key-info-banner" style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <div class="api-key-info-banner"
+            style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
             <strong>Paste your API key from OpenGraph.xyz in the box below and click save</strong>
         </div>
     <?php else: ?>
         <!-- Banner for API Key information -->
-        <div class="api-key-info-banner" style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-            <strong>Need an API Key?</strong> Obtain your API key from your OpenGraph.xyz account by clicking the button below. In the OpenGraph.xyz dashboard, go to <em>Settings > API Keys</em> to find your existing keys or create a new one by clicking on <em>Create new API key</em>.
+        <div class="api-key-info-banner"
+            style="margin-top: 10px; max-width: 700px; border: 1px solid #007cba; background-color: #eef5fa; color: #007cba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+            <strong>Need an API Key?</strong> Get your API key from your OpenGraph.xyz API Key Settings page.
 
             <div style="margin-top:20px;">
-                <a href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary" style="background: #0073aa; border-color: #0073aa; color: white; padding: 8px 16px; font-size: 14px; line-height: 1.4; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block;">
-                    <span class="dashicons dashicons-external" style="margin-right: 5px;"></span>
-                    Go to OpenGraph.xyz Settings
+                <a href="<?php echo esc_url($settings_url); ?>" target="_blank" class="button button-primary"
+                    style="background: #0073aa; border-color: #0073aa; color: white; padding: 8px 16px; font-size: 14px; line-height: 1.4; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="dashicons dashicons-external" style="margin: 0; line-height: 1;"></span>
+                    OpenGraph API Key Settings
                 </a>
             </div>
         </div>
@@ -88,12 +90,11 @@ $has_settings_errors = !empty($settings_errors_list);
                 <tr valign="top">
                     <th scope="row">API Key</th>
                     <td>
-                        <textarea 
-                            name="opengraph_xyz_api_key" 
+                        <textarea name="opengraph_xyz_api_key"
                             style="width: 100%; min-height: 100px; font-family: 'Courier New', monospace; font-size: 13px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"
-                            placeholder="Paste your OpenGraph.xyz API key here..."
-                        ><?php echo esc_textarea(get_option('opengraph_xyz_api_key')); ?></textarea>
-                        <p class="description">Your API key will be securely stored and used to connect to OpenGraph.xyz services.</p>
+                            placeholder="Paste your OpenGraph.xyz API key here..."><?php echo esc_textarea(get_option('opengraph_xyz_api_key')); ?></textarea>
+                        <p class="description">Your API key will be securely stored and used to connect to OpenGraph.xyz
+                            services.</p>
                     </td>
                 </tr>
             </table>
@@ -203,7 +204,7 @@ $has_settings_errors = !empty($settings_errors_list);
     }
 
     // Auto-hide toast after 5 seconds
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const toast = document.getElementById('opengraph-xyz-toast');
         if (toast) {
             setTimeout(() => {
@@ -220,7 +221,7 @@ $has_settings_errors = !empty($settings_errors_list);
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const errorToast = document.getElementById('opengraph-xyz-error-toast');
         if (errorToast) {
             setTimeout(() => {
@@ -230,10 +231,10 @@ $has_settings_errors = !empty($settings_errors_list);
     });
 
     // Show loading overlay when form is submitted
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('form[action="options.php"]');
         if (form) {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function () {
                 showLoadingOverlay();
             });
         }

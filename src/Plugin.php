@@ -130,7 +130,7 @@ class Plugin
       'menu_name' => _x('OG Image Templates', 'admin menu', 'opengraph-xyz'),
       'name_admin_bar' => _x('OG Image Template', 'add new on admin bar', 'opengraph-xyz'),
       'add_new' => _x('Add New', 'template', 'opengraph-xyz'),
-      'add_new_item' => __('Select OG Template', 'opengraph-xyz'),
+      'add_new_item' => __('Add OG Template', 'opengraph-xyz'),
       'new_item' => __('New Template', 'opengraph-xyz'),
       'edit_item' => __('Match Variables', 'opengraph-xyz'),
       'view_item' => __('View Template', 'opengraph-xyz'),

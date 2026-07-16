@@ -16,6 +16,7 @@ class Admin
     add_action('admin_menu', array($this, 'modify_add_new_submenu'));
     add_action('admin_head', array($this, 'add_custom_button'));
     add_action('admin_head', array($this, 'hide_add_new_button'));
+    add_action('admin_head', array($this, 'hide_redundant_submenu_items'));
     add_action('admin_init', array($this, 'register_plugin_settings'));
 
     // Meta
@@ -56,16 +57,6 @@ class Admin
       'edit.php?post_type=opengraph_template',
       null,
       'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjBweCIgaGVpZ2h0PSIxMXB4IiB2aWV3Qm94PSIwIDAgMjAgMTEiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+R3JvdXA8L3RpdGxlPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9Ikdyb3VwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iPgogICAgICAgICAgICA8cGF0aCBkPSJNNS4wNjgwODY4NywwLjAxMzQ5NDY4NDkgQzMuNTkxODgzMjMsMC4xMTU0ODYyODcgMi4xNTQxMzkyOCwwLjg2MzYwODk3MSAxLjIyMTI4MzEyLDIuMDE0OTk5MjYgQy0wLjM2NDczOTE3OCwzLjk3Mjc0MDUxIC0wLjQxMDMzNDc3LDYuNzIzNDczMzcgMS4xMDk4ODkwMSw4LjczMzczMDYxIEMxLjk1NzQ4NTEyLDkuODU0NjI0NzcgMy4yNjQ3NDQxMiwxMC42Mjk5MjY4IDQuNjU3MzU1ODQsMTAuODM3ODcxNyBDNS4wMDQ3OTA1NSwxMC44ODk3NDI4IDYuMDMyMDgxNDksMTAuODgzMDE3MSA2LjM1MzQ3NDgxLDEwLjgyNjgxNTcgQzcuNTYzMzMzNDcsMTAuNjE1MDkzMyA4LjU2MTk4ODE1LDEwLjA5NDcyNDIgOS4zOTIzNDY5MSw5LjI0MzQxMjIzIEM5LjU1ODk3NDcsOS4wNzI1OTcwMiA5Ljc1OTcwNjUyLDguODQ2OTYyNDggOS44Mzg0NzkzOSw4Ljc0MjAyMjYxIEM5LjkxNzM0NDk0LDguNjM3MTc0ODggOS45OTM3MDgyOSw4LjU1MTMwNjYxIDEwLjAwODI1ODEsOC41NTEzMDY2MSBDMTAuMDIyODA3OSw4LjU1MTMwNjYxIDEwLjEwMTk1MTUsOC42NDQ2Mzc2OCAxMC4xODQxNTMzLDguNzU4NjA2NjEgQzEwLjQ5OTMzNzUsOS4xOTU1OTUwMiAxMS4xMjkyNDI0LDkuNzYwMDAzODQgMTEuNjkxOTU4OCwxMC4xMDk0NjU2IEMxMi4yMzQ1NjQ4LDEwLjQ0NjQ4OTMgMTMuMDQ0NzIwNywxMC43NDAyMTA0IDEzLjcwMTEzMDQsMTAuODM3OTYzOSBDMTQuMDY1NTI0NCwxMC44OTIyMzA0IDE1LjE0MTc0NzIsMTAuODgzMDE3MSAxNS40ODg5MDM5LDEwLjgyMjY2OTcgQzE3LjQ1MTM2NzksMTAuNDgxMzE1NyAxOS4wOTk2NjcxLDkuMDY4OTExNjkgMTkuNzMwMDM1NCw3LjE4ODU2MjQ1IEMxOS45MTIyMzI0LDYuNjQ0NzkxNSAxOS45OTY5MzY0LDYuMTU1ODM5ODkgMTkuOTk5NzE2Niw1LjYzMTY5MzM0IEMyMC4wMDE3NTU1LDUuMjMwOTEzMzQgMTkuOTk0MjQ4OSw1LjE2OTQ2MDQgMTkuOTI4NTQzLDUuMDQ3MTk5NDYgQzE5LjgwODkwMDksNC44MjQ4ODE3MyAxOS42OTQ1NDEzLDQuNzEyNjYzMzIgMTkuNDc4MDU0OSw0LjYwNTE0MzcyIEwxOS4yNzM4OTQxLDQuNTAzNzA0OTIgTDE2Ljg0ODk4NzEsNC41MDM3MDQ5MiBDMTQuMDc1OTAzOSw0LjUwMzcwNDkyIDE0LjIyMTY4MDEsNC40ODk3MDA2NSAxMy45MjYxNDI4LDQuNzgzNTEzODYgQzEzLjQ2NjAxNjUsNS4yNDA5NTU4NyAxMy41ODA0Njg5LDUuOTg1NzYxNzUgMTQuMTU3MzY0Myw2LjI4ODIzNTQ5IEwxNC4zMjg4MTEyLDYuMzc4MTU3NjMgTDE2LjE1NDc2NjQsNi4zODc1NTUyMyBMMTcuOTgwODE0Miw2LjM5Njk1MjgzIEwxNy44OTQzNDk0LDYuNjM2NDA3MzcgQzE3LjIzOTA1MTgsOC40NTE0MzQwNyAxNS4yMTM4NDc2LDkuNDQyMDUxNyAxMy40MTQwMjY0LDguODI3OTgzMDIgQzEyLjI2OTEzMjIsOC40Mzc0Mjk4MSAxMS40NTA5MTM4LDcuNTg2NjcwNTkgMTEuMDg2NTE5Nyw2LjQwODAwODgzIEMxMC45OTk5NjIyLDYuMTI4MTk5ODkgMTAuOTk1MTQzMiw2LjA3ODE3MTQ5IDEwLjk5NTE0MzIsNS40NDkxNzcyMSBDMTAuOTk1MTQzMiw0LjgyMzIyMzMzIDExLjAwMDMzMjksNC43Njg3NzI1MyAxMS4wODU1OTMsNC40ODcxMjA5MiBDMTEuNTk5NTYyOCwyLjc5MDM5MzQxIDEzLjE3MTY4NCwxLjczMzcxNjE5IDE0LjkxODQ5NTYsMS45MTA3MDQzMyBDMTUuMzcwODM3MywxLjk1NjU4NjczIDE1LjcwMDU3MTMsMi4wNDM4MzcgMTYuMDc0NTEwNywyLjIxNjU4NyBDMTYuNjA0MTQyNCwyLjQ2MTI5MzE0IDE2Ljk3MDAxOTMsMi43NDIxMTU1NSAxNy4zNTI1Nzc0LDMuMTk3NDM4NDkgQzE3LjY0MjY0NjksMy41NDI2NjIxIDE3LjgwODI1NTMsMy42NDQ1NjE1NyAxOC4xMTQ1NDI4LDMuNjY2Mzk3MTcgQzE4LjUyNTM2NjUsMy42OTU2MDM0MyAxOC44MzY2NTgzLDMuNTI4NDczNTYgMTkuMDM1MzUxMywzLjE3MTkxNzU2IEMxOS4xMjIwMDE1LDMuMDE2MzA0MzUgMTkuMTM0MzI3MSwyLjk2MDkzMjIyIDE5LjEzNDMyNzEsMi43Mjg2NjQwOCBDMTkuMTM0MzI3MSwyLjQ5NDI3Njg3IDE5LjEyMjY1MDIsMi40NDMwNTA3NCAxOS4wMzQyMzkyLDIuMjkwMzg1OCBDMTguNzk1Njk2NSwxLjg3ODU0OTc5IDE4LjE5ODY5MDcsMS4yOTQ2MDg3MSAxNy42MjYwNTgzLDAuOTEzMDg0NTcyIEMxNy4wMzQ3MDU3LDAuNTE5MTIyNDMgMTYuMjM1NzYzNCwwLjE5ODEyOTg4OSAxNS41MzAyMzY1LDAuMDcwOTg1ODg2MiBDMTUuMDk0NDgzNSwtMC4wMDc0MTk1ODIxNSAxNC4xMDU2NTIzLC0wLjAwODcwOTQ0ODg0IDEzLjY0NDMyMTIsMC4wNjg2ODI1NTI5IEMxMi43NjAxMTg5LDAuMjE2ODMyOTU2IDExLjkyNDAxNDQsMC41NzgwODc3NjQgMTEuMjAzODQ1LDEuMTIzMTQ4NTggQzEwLjg3NTEzMDQsMS4zNzE5MDg1OCAxMC4zOTk3MTI5LDEuODQzMzU0ODYgMTAuMTg2NTYyOCwyLjEzMjAwODYgQzEwLjA5OTE3MTMsMi4yNTAzMDc4IDEwLjAxNzM0MDEsMi4zNDcxMzk5NCAxMC4wMDQ3MzY1LDIuMzQ3MTM5OTQgQzkuOTkyMTMyODMsMi4zNDcxMzk5NCA5Ljg5OTQ1ODg2LDIuMjM4ODgzMjcgOS43OTg3MjIyNiwyLjEwNjU3OTggQzkuNTc2Mzk3NDEsMS44MTQ2MDkyNiA5LjA2Nzg5NTM0LDEuMzEyOTQzMjUgOC43NzIzNTgwNiwxLjA5NDAzNDQ0IEM3LjcwMjI1MTc0LDAuMzAxNDExMzU4IDYuMzk5OTA0NDcsLTAuMDc4NDU0MzgzOCA1LjA2ODA4Njg3LDAuMDEzNDk0Njg0OSBNNS45MDMyNjQ2NywxLjkxNzA2MTUzIEM2LjMxNzE0NjYxLDEuOTY3MzY2MzMgNi42NDMzNTg5OCwyLjA2MzU1MzUzIDcuMDI1MDgzMDYsMi4yNDc4MjAyIEM4LjI3MDQzNTg0LDIuODQ4OTkwMjIgOS4wMzkzNTE3Niw0LjA2ODQ2NzA0IDkuMDM5MzUxNzYsNS40NDI0NTE0NyBDOS4wMzkzNTE3Niw3LjI2NzI0NDMxIDcuNzI0OTU2ODcsOC43NDA1NDg0OCA1Ljg3ODQyODA1LDguOTg1NTMxMDIgQzQuODQ5MjgzNjMsOS4xMjIwNzI2MiAzLjcxMTg5NjAyLDguNzI0NDI1MTUgMi45NTQ4NDIzNyw3Ljk2MzIxOTUzIEMyLjUxNzIzNTg5LDcuNTIzMjgyODUgMi4yNzMwMzk5OCw3LjEyODIxNTExIDIuMDg0MjYzMTEsNi41NTUxNDU3NyBDMS4zMzQxNjAwMSw0LjI3NzYwOTcxIDMuMDA2MTgzNzUsMS45MzczMzA4NiA1LjQxOTQxMzg4LDEuODg2ODQxNzkgQzUuNTI5OTczOTMsMS44ODQ1Mzg0NiA1Ljc0Nzc1Nzc1LDEuODk4MTc0MTkgNS45MDMyNjQ2NywxLjkxNzA2MTUzIiBpZD0iU2hhcGUiPjwvcGF0aD4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg=='
-    );
-
-    // Add the submenu item with a different name but same slug as the main menu item
-    add_submenu_page(
-      'edit.php?post_type=opengraph_template', // Parent slug
-      'OG Manager',               // Page title
-      'OG Manager',                   // Menu title
-      'manage_options',                        // Capability
-      'edit.php?post_type=opengraph_template', // Menu slug
-      null                                     // Function (not needed as it's the same as the main menu)
     );
 
     // Add the settings menu item
@@ -149,13 +140,22 @@ class Admin
     update_post_meta($post_id, 'opengraph-xyz', $existing);
 
     do_action('cloudpdf-xyz_save_metabox', $post_id);
+
+    wp_redirect(admin_url('edit.php?post_type=opengraph_template'));
+    exit;
   }
 
   public function handle_template_creation()
   {
-    $templateId = isset($_POST['template_id']) ? sanitize_text_field($_POST['template_id']) : '';
-    $templateName = isset($_POST['template_name']) ? sanitize_text_field($_POST['template_name']) : '';
-    $templateVersion = isset($_POST['template_version']) ? sanitize_text_field($_POST['template_version']) : '';
+    if (!current_user_can('manage_options')) {
+      wp_die(__('You are not allowed to add Open Graph templates.', 'opengraph-xyz'));
+    }
+
+    check_admin_referer('opengraph_xyz_select_template_action', 'opengraph_xyz_select_template_nonce');
+
+    $templateId = isset($_POST['template_id']) ? sanitize_text_field(wp_unslash($_POST['template_id'])) : '';
+    $templateName = isset($_POST['template_name']) ? sanitize_text_field(wp_unslash($_POST['template_name'])) : '';
+    $templateVersion = isset($_POST['template_version']) ? sanitize_text_field(wp_unslash($_POST['template_version'])) : '';
 
     $new_post = array(
       'post_title' => $templateName,
@@ -175,7 +175,6 @@ class Admin
     $postId = wp_insert_post($new_post);
 
     if ($postId) {
-      // Redirect to the edit post screen or a confirmation page
       wp_redirect(admin_url('post.php?post=' . $postId . '&action=edit'));
       exit;
     } else {
@@ -251,6 +250,14 @@ class Admin
   public function display_settings_page()
   {
     include_once 'templates/admin.php';
+  }
+
+  /**
+   * Display shared troubleshooting guidance.
+   */
+  public function display_troubleshooting()
+  {
+    include plugin_dir_path(__FILE__) . 'views/troubleshooting.php';
   }
 
   public function register_plugin_settings()
@@ -372,6 +379,15 @@ class Admin
       'normal',
       'default'
     );
+
+    add_meta_box(
+      'opengraph_template-troubleshooting',
+      __('Troubleshooting', 'opengraph-xyz'),
+      array($this, 'display_troubleshooting'),
+      null,
+      'normal',
+      'low'
+    );
   }
 
   /**
@@ -418,25 +434,44 @@ class Admin
   {
     global $submenu;
 
+    $parent_slug = 'edit.php?post_type=opengraph_template';
+
     // Remove default "Add New" submenu
-    if (isset($submenu['edit.php?post_type=opengraph_template'])) {
-      foreach ($submenu['edit.php?post_type=opengraph_template'] as $key => $item) {
+    if (isset($submenu[$parent_slug])) {
+      foreach ($submenu[$parent_slug] as $key => $item) {
         if ($item[2] === 'post-new.php?post_type=opengraph_template') {
-          unset($submenu['edit.php?post_type=opengraph_template'][$key]);
+          unset($submenu[$parent_slug][$key]);
           break;
         }
       }
     }
 
     add_submenu_page(
-      'edit.php?post_type=opengraph_template',
-      'Select OG Template',
-      'Select OG Template',
+      $parent_slug,
+      'Add OG Template',
+      'Add OG Template',
       'manage_options', // Standard capability
       'opengraph_template_selection',
       array($this, 'display_template_selection_page'),
       1
     );
+
+  }
+
+  /**
+   * Hide routing-only submenu rows while preserving WordPress page metadata.
+   */
+  public function hide_redundant_submenu_items()
+  {
+    echo '<style type="text/css">
+            #adminmenu .wp-submenu a[href="edit.php?post_type=opengraph_template"],
+            #adminmenu .wp-submenu a[href*="page=opengraph_template_selection"] { display: none; }
+          </style>
+          <script type="text/javascript">
+            jQuery(document).ready(function($) {
+              $("#adminmenu .wp-submenu a[href=\"edit.php?post_type=opengraph_template\"], #adminmenu .wp-submenu a[href*=\"page=opengraph_template_selection\"]").parent().remove();
+            });
+          </script>';
   }
 
   public function display_template_selection_page()
@@ -482,6 +517,19 @@ class Admin
     }
 
     $variables = $data['data']['variables'];
+
+    foreach ($variables as &$variable) {
+      if (empty($variable['modifications']) || !is_array($variable['modifications'])) {
+        continue;
+      }
+
+      foreach ($variable['modifications'] as &$modification) {
+        $property = isset($modification['property']) ? $modification['property'] : '';
+        $modification['suggestedDynamicTag'] = opengraphxyz_get_suggested_dynamic_tag($variable, $property);
+      }
+      unset($modification);
+    }
+    unset($variable);
 
     wp_send_json_success(array('variables' => $variables));
   }
@@ -576,8 +624,14 @@ class Admin
   {
     global $pagenow, $typenow, $post;
 
+    if ($this->is_opengraph_template_selection_page()) {
+      return;
+    }
+
     if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
-      $customButton = '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Select OG Template</a>';
+      $customButton = $pagenow == 'edit.php'
+        ? '<a href="edit.php?post_type=opengraph_template&page=opengraph_template_selection" class="page-title-action title-new-template">Add OG Template</a>'
+        : '';
 
       // Add Edit on Open Graph button only on post edit page (post.php) and if post has a template
       $editButton = '';
@@ -589,7 +643,7 @@ class Admin
         }
       }
 
-      // Combine both buttons into one string (Edit on Open Graph first, then Select OG Template)
+      // Show Edit on Open Graph on detail pages and Add OG Template on the overview.
       $allButtons = $editButton . $customButton;
 
       echo '<script type="text/javascript">
@@ -609,6 +663,10 @@ class Admin
   public function hide_add_new_button()
   {
     global $pagenow, $typenow;
+
+    if ($this->is_opengraph_template_selection_page()) {
+      return;
+    }
 
     if (($pagenow == 'edit.php' || $pagenow == 'post.php') && $typenow == 'opengraph_template') {
       echo '<style type="text/css">

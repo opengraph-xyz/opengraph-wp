@@ -15,7 +15,77 @@ defined('ABSPATH') || exit;
  */
 function opengraphxyz_get_base_url()
 {
-    return defined('OPENGRAPHXYZ_BASE_URL') ? OPENGRAPHXYZ_BASE_URL : 'https://dashboard.opengraph.xyz';
+    return defined('OPENGRAPHXYZ_BASE_URL') ? OPENGRAPHXYZ_BASE_URL : 'https://www.opengraph.xyz';
+}
+
+/**
+ * Get the WordPress integration documentation URL.
+ *
+ * @param string $section Optional documentation section anchor.
+ * @return string The WordPress documentation URL.
+ */
+function opengraphxyz_get_wordpress_docs_url($section = '')
+{
+    $url = opengraphxyz_get_base_url() . '/docs/wordpress';
+
+    return empty($section) ? $url : $url . '#' . sanitize_title($section);
+}
+
+/**
+ * Suggest a WordPress dynamic tag for a common template variable.
+ *
+ * @param array  $variable Template variable data.
+ * @param string $property Modification property.
+ * @return string Suggested dynamic tag, or an empty string when none applies.
+ */
+function opengraphxyz_get_suggested_dynamic_tag($variable, $property)
+{
+    $suggestions = array(
+        'title' => array(
+            'properties' => array('text'),
+            'tag' => '{post_title}',
+        ),
+        'description' => array(
+            'properties' => array('text'),
+            'tag' => '{post_excerpt}',
+        ),
+        'image' => array(
+            'properties' => array('src', 'url'),
+            'tag' => '{featured_image}',
+        ),
+        'url' => array(
+            'properties' => array('text', 'url'),
+            'tag' => '{post_url}',
+        ),
+        'link' => array(
+            'properties' => array('text', 'url'),
+            'tag' => '{post_url}',
+        ),
+    );
+
+    $variable_names = array_filter(array($variable['name'] ?? '', $variable['id'] ?? ''));
+
+    foreach ($variable_names as $variable_name) {
+        $variable_name = strtolower((string) $variable_name);
+        $variable_name = preg_replace('/[^a-z0-9]+/', '_', $variable_name);
+        $variable_name = trim($variable_name, '_');
+
+        if (preg_match('/^image_?\d+$/', $variable_name)) {
+            $variable_name = 'image';
+        }
+
+        if (!isset($suggestions[$variable_name])) {
+            continue;
+        }
+
+        $suggestion = $suggestions[$variable_name];
+
+        if (in_array(strtolower($property), $suggestion['properties'], true)) {
+            return $suggestion['tag'];
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -38,32 +108,6 @@ function opengraphxyz_get_base_api_url()
 function opengraphxyz_get_base_image_url()
 {
     return defined('OPENGRAPHXYZ_BASE_IMAGE_URL') ? OPENGRAPHXYZ_BASE_IMAGE_URL : 'https://ogcdn.net';
-}
-
-/**
- * Get the create template base URL without URL encoding for JavaScript concatenation
- * 
- * @return string The base URL for creating templates
- */
-function opengraphxyz_get_create_template_baseurl_raw()
-{
-    $base_url = opengraphxyz_get_base_url();
-    return $base_url . "/register?redirect=/org/[organizationId]/create-template/";
-}
-
-// /org/1/template-editor/c91f620c-b194-449e-86c6-f332e98caf2d
-
-/**
- * Get the OpenGraph.xyz settings URL with wp parameter
- * 
- * @return string The settings URL for OpenGraph.xyz
- */
-function opengraphxyz_get_settings_url()
-{
-    $base_url = opengraphxyz_get_base_url();
-    $current_domain = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
-
-    return $base_url . "/register?redirect=/org/[organizationId]/settings/api-keys?wp=" . urlencode($current_domain);
 }
 
 function opengraphxyz_get_template_variables($post_id)
@@ -178,5 +222,5 @@ function opengraphxyz_generate_image_url($template_id, $template_version, $varia
 function opengraphxyz_get_edit_template_url($template_id)
 {
     $base_url = opengraphxyz_get_base_url();
-    return $base_url . "/register?redirect=/org/[organizationId]/template-editor/" . $template_id;
+    return $base_url . "/generate/" . $template_id;
 }

@@ -8,6 +8,7 @@ $opengraphxyz = get_post_meta($post->ID, 'opengraph-xyz', true);
 $current_modifications = empty($opengraphxyz['modifications']) ? array() : $opengraphxyz['modifications'];
 $custom_fields = empty($opengraphxyz['custom_fields']) ? array() : $opengraphxyz['custom_fields'];
 $dynamic_tags = wp_list_pluck(opengraphxyz_init()->get_tags(), 'description');
+$variable_mapping_docs_url = opengraphxyz_get_wordpress_docs_url('variable-mapping');
 
 wp_nonce_field('opengraph-xyz', 'opengraph-xyz-nonce');
 
@@ -37,6 +38,16 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
     }
   }
 </style>
+
+<div class="notice notice-info inline" style="margin: 0 0 20px;">
+  <p>
+    <strong><?php esc_html_e('Choose which WordPress content should appear in your Open Graph image.', 'opengraph-xyz'); ?></strong>
+  </p>
+  <p>
+    <?php esc_html_e('First, select the template version you want to use. Then use the dropdowns below to connect the template\'s text and images to details from each WordPress post, such as its title, excerpt, or featured image. Choose Default to keep the text or image already saved in your OpenGraph.xyz template.', 'opengraph-xyz'); ?>
+    <a href="<?php echo esc_url($variable_mapping_docs_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Learn about variable mapping', 'opengraph-xyz'); ?></a>.
+  </p>
+</div>
 
 <?php if (!empty($thumbnailUrl)): ?>
 <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
@@ -69,10 +80,11 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
           <td>
             <select name="opengraph[modifications][<?php echo esc_attr($variable['id']); ?>][<?php echo esc_attr($modification['property']); ?>]" id="opengraph-modification-<?php echo esc_attr($variable['id']); ?>__<?php echo esc_attr($modification['property']); ?>" class="regular-text">
               <?php
-              $current_value = isset($current_modifications[$variable['id']][$modification['property']]) ? $current_modifications[$variable['id']][$modification['property']] : '';
+              $has_saved_mapping = isset($current_modifications[$variable['id']]) && array_key_exists($modification['property'], $current_modifications[$variable['id']]);
+              $current_value = $has_saved_mapping ? $current_modifications[$variable['id']][$modification['property']] : opengraphxyz_get_suggested_dynamic_tag($variable, $modification['property']);
               $custom_field = isset($custom_fields[$variable['id']][$modification['property']]) ? $custom_fields[$variable['id']][$modification['property']] : '';
               ?>
-              <option value="_" <?php selected($current_value, ''); ?>><?php esc_html_e('Default', 'opengraph-xyz'); ?></option>
+              <option value="_" <?php selected($current_value, '_'); ?>><?php esc_html_e('Default', 'opengraph-xyz'); ?></option>
               <?php foreach ($dynamic_tags as $dynamic_tag => $description): ?>
                                 <option value="{<?php echo esc_attr($dynamic_tag); ?>}" <?php selected($current_value, '{' . $dynamic_tag . '}'); ?>>
                                   <?php echo esc_html($description); ?>
@@ -308,7 +320,7 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
                 });
 
                 // Add default option
-                var defaultOption = $('<option></option>').attr({value: ''}).text('Default');
+                var defaultOption = $('<option></option>').attr({value: '_'}).text('Default');
                 select.append(defaultOption);
 
                 // Add dynamic tags options
@@ -352,7 +364,8 @@ if (isset($opengraphxyz['template_id']) && isset($opengraphxyz['template_version
                 if (currentSelections.hasOwnProperty(selectId)) {
                   select.val(currentSelections[selectId]);
                   toggleCustomFieldInput(select);
-                } else {
+                } else if (modification.suggestedDynamicTag) {
+                  select.val(modification.suggestedDynamicTag);
                 }
 
                 var customFieldId = 'opengraph-custom-fields-' + variable.id + '__' + modification.property;
