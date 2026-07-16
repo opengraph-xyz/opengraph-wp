@@ -136,12 +136,6 @@
   max-width: 100%;
 }
 
-.og-filter-row select.og-value-select {
-  height: auto;
-  min-width: 200px;
-  min-height: 120px;
-}
-
 .og-remove-condition {
   color: #d63638;
   cursor: pointer;
