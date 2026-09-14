@@ -4,8 +4,8 @@ Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 5.6
-Version: 1.6.0
-Stable tag: 1.6.0
+Version: 1.6.1
+Stable tag: 1.6.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
@@ -24,10 +24,7 @@ Our plugin bridges the gap between your WordPress site and the [OpenGraph.xyz](h
 = Key Features =
 - AI OG Image Template Creator: Simply enter your URL, and our AI analyzes your brand theme, colors, and content to generate a beautiful, custom OG image template in seconds.
 - Dynamic Image Automation: Once set up, every new post or listing automatically generates a unique social image. No design skills or manual uploads required.
-- Metadata Site Audit: Scan your entire website to identify missing tags, broken links, or unoptimized metadata before it affects your traffic.
-- AI Alt Text Generator: Improve accessibility and SEO automatically with AI-generated descriptions for your website images.
-- AI Meta Title & Description Generation: Let AI craft high-converting titles and descriptions for every page on your site.
-- Custom Sharing Links: Create beautiful, branded sharing links that allow you to A/B test your OG images and boost CTR.
+- Custom Short Links: Create beautiful, branded short links that allow you to A/B test your OG images and boost CTR.
 - Global CDN Hosting: All images are served through our lightning-fast global CDN, ensuring your previews load instantly.
 
 **Note:** This plugin requires an [OpenGraph.xyz](https://www.opengraph.xyz) account. We offer a 7-day Free Trial with full access to all available features during the trial period (credit card required). Cancel anytime.
@@ -92,6 +89,9 @@ This is our service for the og image templates. This service will be accessed wh
 
 
 == Changelog ==
+
+= 1.6.1 =
+* Update feature list
 
 = 1.6.0 =
 * Add troubleshooting help and improve the plugin menu and user experience
