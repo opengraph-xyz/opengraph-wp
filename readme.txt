@@ -4,8 +4,8 @@ Tags: open graph, images, og image, dynamic og image, meta tags
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 5.6
-Version: 1.6.1
-Stable tag: 1.6.1
+Version: 1.6.2
+Stable tag: 1.6.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Generate dynamic Open Graph images for WordPress posts and pages with AI templates, variable mapping, and automated social preview metadata.
@@ -89,6 +89,10 @@ This is our service for the og image templates. This service will be accessed wh
 
 
 == Changelog ==
+
+= 1.6.2 =
+* Fix Squirrly SEO compatibility so template images are used for Open Graph and Twitter cards, while preserving standalone Open Graph output when Squirrly social metadata is disabled.
+* Bundle the updated OpenGraph logo with plugin dialogs so it appears correctly in installed plugin packages.
 
 = 1.6.1 =
 * Update feature list
