@@ -51,7 +51,7 @@ defined('ABSPATH') || exit;
 .loading-logo img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 @keyframes spin {
@@ -64,7 +64,7 @@ defined('ABSPATH') || exit;
     <div class="loading-container">
         <div class="loading-spinner"></div>
         <div class="loading-logo">
-            <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../../assets/icon-128x128.png'); ?>" alt="Loading..." />
+            <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../assets/logo.svg'); ?>" alt="OpenGraph logo" />
         </div>
     </div>
 </div>

@@ -10,8 +10,8 @@ $settings_url = opengraphxyz_get_base_url() . '/settings/api-keys';
     <div class="modal-content"
         style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
         <div style="margin-bottom: 1rem;">
-            <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../../assets/icon-128x128.png'); ?>"
-                alt="OpenGraph Logo" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; display: block;">
+            <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../assets/logo.svg'); ?>"
+                alt="OpenGraph Logo" style="width: 3rem; height: auto; margin: 0 auto 1rem; display: block;">
         </div>
 
         <div class="modal-header" style="margin-bottom: 1rem;">
