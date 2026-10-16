@@ -77,6 +77,13 @@ class Renderer
       $seo_plugin_active = true;
     }
 
+    // Squirrly replaces existing social tags in its output buffer. Update its
+    // tag arrays after generation (10), before they are packed into HTML (99).
+    add_filter('sq_open_graph', array($this, 'maybe_replace_squirrly_og_tags'), 90, 1);
+    add_filter('sq_twitter_card', array($this, 'maybe_replace_squirrly_twitter_tags'), 90, 1);
+    // Keep standalone output available if Squirrly's social output is disabled.
+    // When enabled, its buffer removes these tags before inserting its own.
+
     if (!$seo_plugin_active) {
       // If no SEO / Open Graph plugin is active
       add_action('wp_head', array($this, 'render_og_tags'), 10);
@@ -248,6 +255,55 @@ class Renderer
     if (array_key_exists('twitter:image', $tags)) {
       $tags['twitter:image'] = $og_image_url;
     }
+
+    return $tags;
+  }
+
+  /**
+   * Replace Squirrly's Open Graph image before its tags are packed into HTML.
+   *
+   * @param array|false $tags
+   * @return array|false
+   */
+  public function maybe_replace_squirrly_og_tags($tags)
+  {
+    if (!is_array($tags) || empty($tags)) {
+      return $tags;
+    }
+
+    $og_image_url = $this->get_og_image_url();
+    if (!$og_image_url) {
+      return $tags;
+    }
+
+    $tags['og:image'] = $og_image_url;
+    $tags['og:image:secure_url'] = $og_image_url;
+    $tags['og:image:width'] = $this->og_image_width;
+    $tags['og:image:height'] = $this->og_image_height;
+    $tags['og:image:type'] = $this->og_image_type;
+
+    return $tags;
+  }
+
+  /**
+   * Replace Squirrly's Twitter image before its tags are packed into HTML.
+   *
+   * @param array|false $tags
+   * @return array|false
+   */
+  public function maybe_replace_squirrly_twitter_tags($tags)
+  {
+    if (!is_array($tags) || empty($tags)) {
+      return $tags;
+    }
+
+    $og_image_url = $this->get_og_image_url();
+    if (!$og_image_url) {
+      return $tags;
+    }
+
+    $tags['twitter:image'] = $og_image_url;
+    $tags['twitter:card'] = 'summary_large_image';
 
     return $tags;
   }
